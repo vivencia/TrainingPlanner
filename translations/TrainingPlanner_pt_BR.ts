@@ -648,376 +648,6 @@
     </message>
 </context>
 <context>
-    <name>DBUserModel</name>
-    <message>
-        <location filename="../cxx/dbusermodel.h" line="92"/>
-        <source>Create online account: </source>
-        <translation>Criar conta online: </translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.h" line="93"/>
-        <source>Name: </source>
-        <translation>Nome: </translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.h" line="94"/>
-        <source>Birthday: </source>
-        <translation>Aniversário: </translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.h" line="95"/>
-        <source>Sex: </source>
-        <translation>Sexo: </translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.h" line="96"/>
-        <source>Phone: </source>
-        <translation>Telefone: </translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.h" line="99"/>
-        <source>Your are: </source>
-        <translation>Você é: </translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.h" line="100"/>
-        <source>Training Job: </source>
-        <translation>Trabalho como treinador: </translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.h" line="103"/>
-        <source>User category: </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.h" line="104"/>
-        <source>Password:</source>
-        <translation>Senha:</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.h" line="107"/>
-        <source>Continue Setup</source>
-        <translation>Continuar configuração</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.h" line="107"/>
-        <source>Create a new user</source>
-        <translation>Criar um novo usuário</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.h" line="109"/>
-        <source>User already registered</source>
-        <translation>Usuário já registrado</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.h" line="110"/>
-        <source>Invalid email address</source>
-        <translation>E-mail inválido</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.h" line="111"/>
-        <source>Password must have 6 characters or more</source>
-        <translation>A senha deve conter 6 caracteres ou mais</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.h" line="112"/>
-        <source>Check</source>
-        <translation>Verificar</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.h" line="113"/>
-        <source>Import</source>
-        <translation>Importar</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="515"/>
-        <source>All your clients will be removed and cannot be automatically retrieved</source>
-        <translation>Todos seus clientes serão removidos e não poderão ser automaticamente recuperados</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="617"/>
-        <source>New user</source>
-        <translation>Novo usuário</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="708"/>
-        <source>Coach registration</source>
-        <translation>Registro de treinador</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1412"/>
-        <source>Online account removed</source>
-        <translation>Conta online removida</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1412"/>
-        <source>Failed to remove online account</source>
-        <translation>Falha ao remover conta online</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1054"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1059"/>
-        <source>User switching error</source>
-        <translation>Erro ao alternar usuário</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1054"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1059"/>
-        <source>Could not download files for user </source>
-        <translation>Não foi possível baixar os arquivos do usuário </translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="767"/>
-        <source>Coach contacting</source>
-        <translation>Contato com o treinador</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="58"/>
-        <source>TP Network</source>
-        <translation>Rede TP</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="195"/>
-        <location filename="../cxx/dbusermodel.cpp" line="232"/>
-        <source>Yes</source>
-        <translation>Sim</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="195"/>
-        <location filename="../cxx/dbusermodel.cpp" line="232"/>
-        <location filename="../cxx/dbusermodel.cpp" line="516"/>
-        <location filename="../cxx/dbusermodel.cpp" line="532"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1339"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1371"/>
-        <source>No</source>
-        <translation>Não</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="515"/>
-        <source>Revoke coach status?</source>
-        <translation>Rescindir condição de treinador?</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="516"/>
-        <location filename="../cxx/dbusermodel.cpp" line="532"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1339"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1370"/>
-        <source>Revoke</source>
-        <translation>Rescindir</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="530"/>
-        <source>Revoke client status?</source>
-        <translation>Rescindir condição de cliente?</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="530"/>
-        <source>All your coaches will be removed and cannot be automatically retrieved</source>
-        <translation>Todos os seus treinadores serão removidos e não poderão ser automaticamente re-incluídos</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1428"/>
-        <source>New coach!</source>
-        <translation>Novo treinador!</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1428"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1459"/>
-        <source>Now that </source>
-        <translation>Agora que </translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1429"/>
-        <source> is your coach, you can send them messages using the Star Button on the Home screen</source>
-        <translation> é seu(sua) treinador(a), você pode enviar-lhe mensagens utilizando o botão Estrela na página inicial</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="600"/>
-        <source>User removal</source>
-        <translation>Remoção de usuário</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="231"/>
-        <source>Remove user?</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="231"/>
-        <source>All the data for %1 will be deleted</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="296"/>
-        <source>TP app password</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="300"/>
-        <source>New password</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="304"/>
-        <source>Change password</source>
-        <translation type="unfinished">Mudar senha</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="310"/>
-        <source></source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="334"/>
-        <source>The provided password is not your TP App password</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="359"/>
-        <source>Success!</source>
-        <translation type="unfinished">Sucesso!</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="359"/>
-        <source>New user password saved</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="363"/>
-        <source>Error! Password not set</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="378"/>
-        <source>Unable to change password because the current password entered is wrong</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="399"/>
-        <source>Error! Password not changed</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="659"/>
-        <source>Attempting to import user data</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="767"/>
-        <source>Online coach contacted </source>
-        <translation>Treinador contactado </translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="847"/>
-        <source>Coach Information</source>
-        <translation>Informação do Treinador</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="847"/>
-        <source>Client Information</source>
-        <translation>Informação do Cliente</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1014"/>
-        <source>Login failed</source>
-        <translation>Login falhou</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1014"/>
-        <source>Please, type in your TraininPlanner user password</source>
-        <translation>Por favor, digite sua senha do aplicativo TrainingPlanner</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1459"/>
-        <source>New client!</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1460"/>
-        <source> is your client, you can send them messages using the Star Button on the Home screen</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1490"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1513"/>
-        <source>Male</source>
-        <translation>Homen</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1490"/>
-        <source>Female</source>
-        <translation>Mulher</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1498"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1519"/>
-        <source>User</source>
-        <translation>Usuário</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1499"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1521"/>
-        <source>Coach</source>
-        <translation>Treinador</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1500"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1523"/>
-        <source>Client</source>
-        <translation>Cliente</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1501"/>
-        <source>Coach and Client</source>
-        <translation>Treinador e Cliente</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="188"/>
-        <source>If you remove your online account you&apos;ll not be able to log onto it anymore from any device.</source>
-        <translation>Se você remover sua conta online, você não poderá entrar nela por mais nenhum outro aparelho.</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="190"/>
-        <source>You&apos;ll not have access to your online client(s) anymore.</source>
-        <translation>Você não mais terá acesso ao(s) seu(s) cliente(s) online.</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="192"/>
-        <source>You&apos;ll not have access to your online coache(s) anymore.</source>
-        <translation>Você não mais terá acesso ao(s) seu(s) coach(es) online.</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="194"/>
-        <source>Remove online account?</source>
-        <translation>Remover conta online?</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1336"/>
-        <location filename="../cxx/dbusermodel.cpp" line="1367"/>
-        <source> - unavailable</source>
-        <translation> - indisponível</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1336"/>
-        <source>The user is no longer available as your client. If you need to know more about this, contact them to find out the reason. Remove the user from your list of clients?</source>
-        <translation>O usuário não está mais disponível como seu cliente. Se deseja saber mais sobre isso, contacte-o para obter uma resposta. Remover o usuário da sua lista de clientes?</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.cpp" line="1368"/>
-        <source>The user is no longer available as your coach. If you need to know more about this, contact them to find out the reason. Remove the user from your list of coaches?</source>
-        <translation>O usuário não está mais disponível como seu treinador. Se deseja saber mais sobre isso, contacte-o para obter uma resposta. Remover o usuário da sua lista de treinadores?</translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.h" line="98"/>
-        <source>Social Media: </source>
-        <translation>Media Social: </translation>
-    </message>
-    <message>
-        <location filename="../cxx/dbusermodel.h" line="101"/>
-        <source>Goal: </source>
-        <translation>Objetivo: </translation>
-    </message>
-</context>
-<context>
     <name>ExercisesListDelegate</name>
     <message>
         <location filename="../qml/Exercises/ExercisesListDelegate.qml" line="165"/>
@@ -1851,27 +1481,27 @@
 <context>
     <name>PasswordDialog</name>
     <message>
-        <location filename="../qml/Dialogs/PasswordDialog.qml" line="142"/>
+        <location filename="../qml/Dialogs/PasswordDialog.qml" line="143"/>
         <source>New password: </source>
         <translation type="unfinished">Nova senha: </translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/PasswordDialog.qml" line="160"/>
+        <location filename="../qml/Dialogs/PasswordDialog.qml" line="161"/>
         <source>Confirm new password: </source>
         <translation type="unfinished">Confirme a nova senha: </translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/PasswordDialog.qml" line="179"/>
+        <location filename="../qml/Dialogs/PasswordDialog.qml" line="180"/>
         <source>Current password: </source>
         <translation type="unfinished">Senha atual: </translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/PasswordDialog.qml" line="197"/>
+        <location filename="../qml/Dialogs/PasswordDialog.qml" line="198"/>
         <source>Save password</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/PasswordDialog.qml" line="234"/>
+        <location filename="../qml/Dialogs/PasswordDialog.qml" line="235"/>
         <source>Cancel</source>
         <translation>Cancelar</translation>
     </message>
@@ -2531,27 +2161,27 @@
 <context>
     <name>TPCoachesAndClientsList</name>
     <message>
-        <location filename="../qml/User/TPCoachesAndClientsList.qml" line="65"/>
+        <location filename="../qml/User/TPCoachesAndClientsList.qml" line="64"/>
         <source>No clients pending confirmation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/User/TPCoachesAndClientsList.qml" line="63"/>
+        <location filename="../qml/User/TPCoachesAndClientsList.qml" line="62"/>
         <source>No current clients</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/User/TPCoachesAndClientsList.qml" line="74"/>
+        <location filename="../qml/User/TPCoachesAndClientsList.qml" line="73"/>
         <source>No coaches pending confirmation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/User/TPCoachesAndClientsList.qml" line="72"/>
+        <location filename="../qml/User/TPCoachesAndClientsList.qml" line="71"/>
         <source>No available coaches</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/User/TPCoachesAndClientsList.qml" line="70"/>
+        <location filename="../qml/User/TPCoachesAndClientsList.qml" line="69"/>
         <source>No current coaches</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2682,27 +2312,27 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tplistmodel.cpp" line="107"/>
+        <location filename="../cxx/tplistmodel.cpp" line="124"/>
         <source>Filter Logs</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tplistmodel.cpp" line="357"/>
+        <location filename="../cxx/tplistmodel.cpp" line="368"/>
         <source>Remove the selected entry(ies)?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tplistmodel.cpp" line="360"/>
+        <location filename="../cxx/tplistmodel.cpp" line="371"/>
         <source>Remove %1?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tplistmodel.cpp" line="366"/>
+        <location filename="../cxx/tplistmodel.cpp" line="377"/>
         <source>Remove these entries?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/tplistmodel.cpp" line="369"/>
+        <location filename="../cxx/tplistmodel.cpp" line="380"/>
         <source>Remove </source>
         <translation type="unfinished">Remover </translation>
     </message>
@@ -3273,7 +2903,7 @@
 <context>
     <name>UserInfoListModel</name>
     <message>
-        <location filename="../cxx/userinfolistmodel.cpp" line="233"/>
+        <location filename="../cxx/userinfolistmodel.cpp" line="125"/>
         <source>Insert Time: </source>
         <translation type="unfinished"></translation>
     </message>
@@ -3447,6 +3077,376 @@ Mas isso não é obrigatório para o funcionamento do aplicativo.</translation>
 Let&apos;s first setup the application by creating your profile.</source>
         <translation>Bem vindo ao app Training Planner!
 Vamos iniciar criando seu perfil de usuário.</translation>
+    </message>
+</context>
+<context>
+    <name>UsersManager</name>
+    <message>
+        <location filename="../cxx/usersmanager.h" line="92"/>
+        <source>Create online account: </source>
+        <translation>Criar conta online: </translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.h" line="93"/>
+        <source>Name: </source>
+        <translation>Nome: </translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.h" line="94"/>
+        <source>Birthday: </source>
+        <translation>Aniversário: </translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.h" line="95"/>
+        <source>Sex: </source>
+        <translation>Sexo: </translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.h" line="96"/>
+        <source>Phone: </source>
+        <translation>Telefone: </translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.h" line="99"/>
+        <source>Your are: </source>
+        <translation>Você é: </translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.h" line="100"/>
+        <source>Training Job: </source>
+        <translation>Trabalho como treinador: </translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.h" line="103"/>
+        <source>User category: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.h" line="104"/>
+        <source>Password:</source>
+        <translation>Senha:</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.h" line="107"/>
+        <source>Continue Setup</source>
+        <translation>Continuar configuração</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.h" line="107"/>
+        <source>Create a new user</source>
+        <translation>Criar um novo usuário</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.h" line="109"/>
+        <source>User already registered</source>
+        <translation>Usuário já registrado</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.h" line="110"/>
+        <source>Invalid email address</source>
+        <translation>E-mail inválido</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.h" line="111"/>
+        <source>Password must have 6 characters or more</source>
+        <translation>A senha deve conter 6 caracteres ou mais</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.h" line="112"/>
+        <source>Check</source>
+        <translation>Verificar</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.h" line="113"/>
+        <source>Import</source>
+        <translation>Importar</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="515"/>
+        <source>All your clients will be removed and cannot be automatically retrieved</source>
+        <translation>Todos seus clientes serão removidos e não poderão ser automaticamente recuperados</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="627"/>
+        <source>New user</source>
+        <translation>Novo usuário</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="718"/>
+        <source>Coach registration</source>
+        <translation>Registro de treinador</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="1422"/>
+        <source>Online account removed</source>
+        <translation>Conta online removida</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="1422"/>
+        <source>Failed to remove online account</source>
+        <translation>Falha ao remover conta online</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="1064"/>
+        <location filename="../cxx/usersmanager.cpp" line="1069"/>
+        <source>User switching error</source>
+        <translation>Erro ao alternar usuário</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="1064"/>
+        <location filename="../cxx/usersmanager.cpp" line="1069"/>
+        <source>Could not download files for user </source>
+        <translation>Não foi possível baixar os arquivos do usuário </translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="777"/>
+        <source>Coach contacting</source>
+        <translation>Contato com o treinador</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="58"/>
+        <source>TP Network</source>
+        <translation>Rede TP</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="195"/>
+        <location filename="../cxx/usersmanager.cpp" line="232"/>
+        <source>Yes</source>
+        <translation>Sim</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="195"/>
+        <location filename="../cxx/usersmanager.cpp" line="232"/>
+        <location filename="../cxx/usersmanager.cpp" line="516"/>
+        <location filename="../cxx/usersmanager.cpp" line="532"/>
+        <location filename="../cxx/usersmanager.cpp" line="1349"/>
+        <location filename="../cxx/usersmanager.cpp" line="1381"/>
+        <source>No</source>
+        <translation>Não</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="515"/>
+        <source>Revoke coach status?</source>
+        <translation>Rescindir condição de treinador?</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="516"/>
+        <location filename="../cxx/usersmanager.cpp" line="532"/>
+        <location filename="../cxx/usersmanager.cpp" line="1349"/>
+        <location filename="../cxx/usersmanager.cpp" line="1380"/>
+        <source>Revoke</source>
+        <translation>Rescindir</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="530"/>
+        <source>Revoke client status?</source>
+        <translation>Rescindir condição de cliente?</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="530"/>
+        <source>All your coaches will be removed and cannot be automatically retrieved</source>
+        <translation>Todos os seus treinadores serão removidos e não poderão ser automaticamente re-incluídos</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="1438"/>
+        <source>New coach!</source>
+        <translation>Novo treinador!</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="1438"/>
+        <location filename="../cxx/usersmanager.cpp" line="1469"/>
+        <source>Now that </source>
+        <translation>Agora que </translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="1439"/>
+        <source> is your coach, you can send them messages using the Star Button on the Home screen</source>
+        <translation> é seu(sua) treinador(a), você pode enviar-lhe mensagens utilizando o botão Estrela na página inicial</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="610"/>
+        <source>User removal</source>
+        <translation>Remoção de usuário</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="231"/>
+        <source>Remove user?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="231"/>
+        <source>All the data for %1 will be deleted</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="296"/>
+        <source>TP app password</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="300"/>
+        <source>New password</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="304"/>
+        <source>Change password</source>
+        <translation type="unfinished">Mudar senha</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="310"/>
+        <source></source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="334"/>
+        <source>The provided password is not your TP App password</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="359"/>
+        <source>Success!</source>
+        <translation type="unfinished">Sucesso!</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="359"/>
+        <source>New user password saved</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="363"/>
+        <source>Error! Password not set</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="378"/>
+        <source>Unable to change password because the current password entered is wrong</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="399"/>
+        <source>Error! Password not changed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="669"/>
+        <source>Attempting to import user data</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="777"/>
+        <source>Online coach contacted </source>
+        <translation>Treinador contactado </translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="857"/>
+        <source>Coach Information</source>
+        <translation>Informação do Treinador</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="857"/>
+        <source>Client Information</source>
+        <translation>Informação do Cliente</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="1024"/>
+        <source>Login failed</source>
+        <translation>Login falhou</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="1024"/>
+        <source>Please, type in your TraininPlanner user password</source>
+        <translation>Por favor, digite sua senha do aplicativo TrainingPlanner</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="1469"/>
+        <source>New client!</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="1470"/>
+        <source> is your client, you can send them messages using the Star Button on the Home screen</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="1500"/>
+        <location filename="../cxx/usersmanager.cpp" line="1523"/>
+        <source>Male</source>
+        <translation>Homen</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="1500"/>
+        <source>Female</source>
+        <translation>Mulher</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="1508"/>
+        <location filename="../cxx/usersmanager.cpp" line="1529"/>
+        <source>User</source>
+        <translation>Usuário</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="1509"/>
+        <location filename="../cxx/usersmanager.cpp" line="1531"/>
+        <source>Coach</source>
+        <translation>Treinador</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="1510"/>
+        <location filename="../cxx/usersmanager.cpp" line="1533"/>
+        <source>Client</source>
+        <translation>Cliente</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="1511"/>
+        <source>Coach and Client</source>
+        <translation>Treinador e Cliente</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="188"/>
+        <source>If you remove your online account you&apos;ll not be able to log onto it anymore from any device.</source>
+        <translation>Se você remover sua conta online, você não poderá entrar nela por mais nenhum outro aparelho.</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="190"/>
+        <source>You&apos;ll not have access to your online client(s) anymore.</source>
+        <translation>Você não mais terá acesso ao(s) seu(s) cliente(s) online.</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="192"/>
+        <source>You&apos;ll not have access to your online coache(s) anymore.</source>
+        <translation>Você não mais terá acesso ao(s) seu(s) coach(es) online.</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="194"/>
+        <source>Remove online account?</source>
+        <translation>Remover conta online?</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="1346"/>
+        <location filename="../cxx/usersmanager.cpp" line="1377"/>
+        <source> - unavailable</source>
+        <translation> - indisponível</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="1346"/>
+        <source>The user is no longer available as your client. If you need to know more about this, contact them to find out the reason. Remove the user from your list of clients?</source>
+        <translation>O usuário não está mais disponível como seu cliente. Se deseja saber mais sobre isso, contacte-o para obter uma resposta. Remover o usuário da sua lista de clientes?</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.cpp" line="1378"/>
+        <source>The user is no longer available as your coach. If you need to know more about this, contact them to find out the reason. Remove the user from your list of coaches?</source>
+        <translation>O usuário não está mais disponível como seu treinador. Se deseja saber mais sobre isso, contacte-o para obter uma resposta. Remover o usuário da sua lista de treinadores?</translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.h" line="98"/>
+        <source>Social Media: </source>
+        <translation>Media Social: </translation>
+    </message>
+    <message>
+        <location filename="../cxx/usersmanager.h" line="101"/>
+        <source>Goal: </source>
+        <translation>Objetivo: </translation>
     </message>
 </context>
 <context>

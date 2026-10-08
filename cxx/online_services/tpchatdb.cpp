@@ -1,7 +1,7 @@
 #include "tpchatdb.h"
 
 #include "tpchat.h"
-#include "../dbusermodel.h"
+#include "../usersmanager.h"
 
 constexpr int n_fields{TPChat::TPCHAT_N_FIELDS};
 constexpr QLatin1StringView table_name{ "chat_table"_L1 };

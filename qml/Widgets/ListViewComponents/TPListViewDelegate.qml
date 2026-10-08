@@ -28,6 +28,11 @@ SwipeDelegate {
 	property int _index
 	property bool _itemVisible
 
+	onFocusChanged: {
+		if (focus)
+			listModel.currentRow = _index;
+	}
+
 	onHeightChanged: {
 		if (bufferTimer.running)
 			return;

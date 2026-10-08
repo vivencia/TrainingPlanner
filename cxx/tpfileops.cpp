@@ -2,7 +2,7 @@
 #include "dbexerciseslistmodel.h"
 #include "dbexercisesmodel.h"
 #include "dbmesocyclesmodel.h"
-#include "dbusermodel.h"
+#include "usersmanager.h"
 #include "osinterface.h"
 #include "pageslistmodel.h"
 #include "property_buffer.tpp"
@@ -1289,7 +1289,7 @@ void TPFileOps::openTPFile()
 {
 	QString str_type, str_details, str_image;
 	const QString &sender_client{m_filename.ownerUser()};
-	const int user_idx{appUserModel()->userIdxFromFieldValue(DBUserModel::USER_FIELD_ID, sender_client)};
+	const int user_idx{appUserModel()->userIdxFromFieldValue(UsersManager::ID, sender_client)};
 	const bool is_coach{appUserModel()->isCoach(user_idx)};
 	const QString &client_name{appUserModel()->userName(user_idx)};
 	const uint32_t ft{static_cast<uint>(m_filetype) & static_cast<uint>(~TPUtils::FT_TP_FORMATTED)};

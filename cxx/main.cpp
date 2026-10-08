@@ -1,7 +1,7 @@
 #include "thread_manager.h"
 #include "dbexerciseslistmodel.h"
 
-#include "dbusermodel.h"
+#include "usersmanager.h"
 #include "osinterface.h"
 #include "qmlitemmanager.h"
 #include "tpfilepath.h"
@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 	QmlItemManager rootQmlManager{};
 	TPOnlineServices appTOS{};
 	OSInterface osInterface{};
-	DBUserModel userModel{};
+	UsersManager userModel{};
 	DBExercisesListModel exercisesModel{};
 	QQmlApplicationEngine qmlEngine;
 	rootQmlManager.startQmlEngine(&qmlEngine);

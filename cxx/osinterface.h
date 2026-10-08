@@ -29,7 +29,6 @@ struct notificationData {
 #ifdef Q_OS_LINUX
 #ifdef LOCAL_TPSERVER
 #include <QProcess>
-#define TPSERVER_MACHINE //comment to test/debug android scenarios on the development machine
 #endif //LOCAL_TPSERVER
 #endif //Q_OS_LINUX
 #endif //Q_OS_ANDROID

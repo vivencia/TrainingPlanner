@@ -3,7 +3,7 @@
 #include "dbcalendarmodel.h"
 #include "dbexerciseslistmodel.h"
 #include "dbmesocyclesmodel.h"
-#include "dbusermodel.h"
+#include "usersmanager.h"
 #include "dbworkoutsorsplitstable.h"
 #include "pageslistmodel.h"
 #include "qmlitemmanager.h"

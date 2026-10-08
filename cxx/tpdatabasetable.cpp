@@ -1,7 +1,7 @@
 #include "tpdatabasetable.h"
 
 #include "dbmodelinterface.h"
-#include "dbusermodel.h"
+#include "usersmanager.h"
 #include "qmlitemmanager.h"
 #include "osinterface.h"
 #include "tputils.h"

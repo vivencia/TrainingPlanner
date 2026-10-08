@@ -27,48 +27,50 @@ TPFilterModel::TPFilterModel(TPListModel *parent)
 	roleToString(values)
 	roleToString(selValues)
 
-	connect(m_parentModel, &TPListModel::itemAdded, this, [this] (const int index) {
-		//When an item is added to the parent model, go through every filter element and add the relevant value its list
-		//of values only if the filter as been initialized
-		for (uint i{0}; i < m_filterElements.count(); ++i) {
-			if (!m_filterElements.at(i).values.isEmpty()) {
-				const QPair<bool,QString> &value{m_getData(index, m_filterElements.at(index).field)};
-				if (!hasValue(m_filterElements.at(i), value.second)) {
-					m_filterElements[i].selected_values.append(std::move(false));
-					m_filterElements[i].values.append(std::move(value.second));
+	if (m_parentModel) {
+		connect(m_parentModel, &TPListModel::itemAdded, this, [this] (const int index) {
+			//When an item is added to the parent model, go through every filter element and add the relevant value its list
+			//of values only if the filter as been initialized
+			for (uint i{0}; i < m_filterElements.count(); ++i) {
+				if (!m_filterElements.at(i).values.isEmpty()) {
+					const QPair<bool,QString> &value{m_getData(index, m_filterElements.at(index).field)};
+					if (!hasValue(m_filterElements.at(i), value.second)) {
+						m_filterElements[i].selected_values.append(std::move(false));
+						m_filterElements[i].values.append(std::move(value.second));
+					}
 				}
 			}
-		}
 
-	});
-	connect(m_parentModel, &TPListModel::itemRemoved, this, [this] (const int index) {
-		//When an item is removed from the parent model, go through every filter element and every filter value under it and
-		//compare it to the remaining field values of all the items in the model. When the filter value is not found,
-		//meaning that filter no longer could apply to the model because the model is void of it, remove it
-		for (uint i{0}; i < m_filterElements.count(); ++i) {
-			if (!m_filterElements.at(i).values.isEmpty()) {
-				auto value_idx{m_filterElements.at(i).values.count() - 1};
-				for (auto x{value_idx}; x >= 0; --x) {
-					uint data_index{0};
-					bool found{false};
-					const auto &value{m_filterElements.at(i).values.at(x)};
-					do {
-						const QPair<bool,QString> &model_value{m_getData(data_index++, m_filterElements.at(i).field)};
-						if (model_value.first) {
-							if (model_value.second == value) {
-								found = true;
+		});
+		connect(m_parentModel, &TPListModel::itemRemoved, this, [this] (const int index) {
+			//When an item is removed from the parent model, go through every filter element and every filter value under it and
+			//compare it to the remaining field values of all the items in the model. When the filter value is not found,
+			//meaning that filter no longer could apply to the model because the model is void of it, remove it
+			for (uint i{0}; i < m_filterElements.count(); ++i) {
+				if (!m_filterElements.at(i).values.isEmpty()) {
+					auto value_idx{m_filterElements.at(i).values.count() - 1};
+					for (auto x{value_idx}; x >= 0; --x) {
+						uint data_index{0};
+						bool found{false};
+						const auto &value{m_filterElements.at(i).values.at(x)};
+						do {
+							const QPair<bool,QString> &model_value{m_getData(data_index++, m_filterElements.at(i).field)};
+							if (model_value.first) {
+								if (model_value.second == value) {
+									found = true;
+									break;
+								}
+							} else {
 								break;
 							}
-						} else {
-							break;
-						}
-					} while (true);
-					if (!found)
-						m_filterElements.removeAt(x);
+						} while (true);
+						if (!found)
+							m_filterElements.removeAt(x);
+					}
 				}
 			}
-		}
-	});
+		});
+	}
 
 	connect(appTr(), &TranslationClass::applicationLanguageChanged, this, [this] () {
 		uint i{0};
@@ -78,6 +80,17 @@ TPFilterModel::TPFilterModel(TPListModel *parent)
 	});
 }
 
+TPFilterModel::TPFilterModel(const TPFilterModel &other)
+{
+	beginResetModel();
+	m_parentModel = other.m_parentModel;
+	m_filterElements = other.m_filterElements;
+	m_filterDisplayStringFuncs = other.m_filterDisplayStringFuncs;
+	m_filters.clear();
+	m_getData = other.m_getData;
+	endResetModel();
+}
+
 int TPFilterModel::addFilterField(const uint field, const std::function<QString()> &display_func, QString &&image,
 							 const bool visible, const bool enabled, const bool selected)
 {
@@ -85,14 +98,16 @@ int TPFilterModel::addFilterField(const uint field, const std::function<QString(
 	beginInsertRows(QModelIndex{}, filter_idx, filter_idx);
 	st_Filter new_filter;
 	new_filter.field = field;
-	new_filter.display = std::move(display_func());
+	if (display_func) {
+		new_filter.display = std::move(display_func());
+		m_filterDisplayStringFuncs.append(display_func);
+	}
 	new_filter.image = std::move(image);
 	new_filter.visible = visible;
 	new_filter.enabled = enabled;
 	new_filter.selected = selected;
-	m_filterDisplayStringFuncs.append(display_func);
 	m_filterElements.append(std::move(new_filter));
-	emit filtersChanged();
+	emit filtersChanged(true);
 	endInsertRows();
 	emit countChanged();
 	return filter_idx;
@@ -103,7 +118,7 @@ void TPFilterModel::removeFilter(const uint filter_idx)
 	if (filter_idx < m_filterElements.count()) {
 		beginRemoveRows(QModelIndex{}, filter_idx, filter_idx);
 		m_filterElements.removeAt(filter_idx);
-		emit filtersChanged();
+		emit filtersChanged(true);
 		emit countChanged();
 		endRemoveRows();
 	}
@@ -136,11 +151,10 @@ void TPFilterModel::initFilterValues(const uint field)
 		uint data_index{0};
 		do {
 			const QPair<bool,QString> &value{m_getData(data_index++, field)};
+			filter->selected_values.append(false);
 			if (value.first) {
-				if (!hasValue(std::as_const(*filter), value.second)) {
-					filter->selected_values.append(false);
+				if (!hasValue(std::as_const(*filter), value.second))
 					filter->values.append(std::move(value.second));
-				}
 			} else {
 				break;
 			}

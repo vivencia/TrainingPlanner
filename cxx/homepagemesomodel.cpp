@@ -1,6 +1,6 @@
 #include "homepagemesomodel.h"
 
-#include "dbusermodel.h"
+#include "usersmanager.h"
 #include "qmlmesointerface.h"
 #include "tpsettings.h"
 #include "tputils.h"

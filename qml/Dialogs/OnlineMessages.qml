@@ -409,7 +409,7 @@ TPPopup {
 		}
 
 		TPButton2 {
-			imageSource: mainLayout.currentIndex !== 2 ? "add-new.png" : "revert.png"
+			image: mainLayout.currentIndex !== 2 ? "add-new.png" : "revert.png"
 			width: AppSettings.itemDefaultHeight
 			height: width
 			visible: !onlineMsgsDlg._minimized

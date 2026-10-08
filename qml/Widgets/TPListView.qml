@@ -1,7 +1,6 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Controls
 
 import TpQml
 
@@ -20,7 +19,6 @@ Item {
 	property bool canSelectItems: showHeader
 	property bool canSort: showHeader
 	property alias delegate: _listView.delegate
-	property alias currentIndex: _listView.currentIndex
 	property alias spacing: _listView.spacing
 	//readonly property alias vBar: _vBar
 	readonly property int minimumHeight: 15 + _headerLoader.height +
@@ -60,9 +58,9 @@ Item {
 	ListView {
 		id: _listView
 		model: _control.listModel
-		//boundsBehavior: ListView.StopAtBounds
 		contentWidth: width
 		contentHeight: contentItem.childrenRect.height * 1.1
+		currentIndex: _control.listModel.currentRow
 		reuseItems: true
 		highlight: highlight_component
 		highlightFollowsCurrentItem: false
@@ -88,19 +86,6 @@ Item {
 				}
 			}
 		}
-
-		/*ScrollBar.vertical: ScrollBar {
-			id: _vBar
-			policy: ScrollBar.AsNeeded
-			active: true
-			interactive: Qt.platform.os !== "android"
-
-			anchors {
-				top: parent.top
-				bottom: parent.bottom
-				right: parent.right
-			}
-		}*/
 
 		anchors {
 			top: _control.showHeader ? _headerLoader.bottom : parent.top

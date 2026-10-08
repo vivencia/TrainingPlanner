@@ -213,7 +213,7 @@ ComboBox {
 
 				onReadyChanged: {
 					if (_control.currentIndex >= 0)
-						setCurIndex(_control.currentIndex);
+						_control.setCurIndex(_control.currentIndex);
 				}
 
 				function positionItem(index: int, item: Item): void {
@@ -243,7 +243,7 @@ ComboBox {
 					}
 					if (n_skipped === 0) {
 						positionItem(index, item);
-						if (index === modelSize())
+						if (index === _control.modelSize())
 							ready = true;
 					} else {
 						for (let i = 0; i < n_skipped; ++i)

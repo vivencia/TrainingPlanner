@@ -11,7 +11,6 @@ class TPFilterModel : public QAbstractListModel
 Q_OBJECT
 QML_ELEMENT
 QML_VALUE_TYPE(TPFilterModel)
-QML_UNCREATABLE("")
 
 Q_PROPERTY(uint count READ count NOTIFY countChanged)
 
@@ -30,7 +29,18 @@ public:
 	};
 
 	explicit TPFilterModel(TPListModel *parent = nullptr);
+    TPFilterModel(const TPFilterModel &other);
+    ~TPFilterModel() = default;
 	inline uint count() const { return m_filterElements.count(); }
+	inline void clear()
+	{
+		m_filters.clear();
+		for (auto &filter : m_filterElements) {
+			filter.enabled = filter.visible = true;
+			filter.selected = false;
+			filter.values.clear();
+		}
+	}
 
 	int addFilterField(const uint field, const std::function<QString()> &display_func, QString &&image,
 											const bool visible = true, const bool enabled = true, const bool selected = false);
@@ -43,16 +53,20 @@ public:
 	Q_INVOKABLE void selectAll();
 	Q_INVOKABLE inline void addValue(const uint filter_index, const uint value_index)
 	{
-		if (!m_filterElements.at(filter_index).selected_values.at(value_index)) {
-			m_filterElements[filter_index].selected_values[value_index] = true;
-			m_filters.append(m_filterElements.at(filter_index).values.at(value_index));
+		if (filter_index < m_filterElements.count() && value_index < m_filterElements.at(filter_index).selected_values.count()) {
+			if (!m_filterElements.at(filter_index).selected_values.at(value_index)) {
+				m_filterElements[filter_index].selected_values[value_index] = true;
+				m_filters.append(m_filterElements.at(filter_index).values.at(value_index));
+			}
 		}
 	}
 	Q_INVOKABLE inline void delValue(const uint filter_index, const uint value_index)
 	{
-		if (m_filterElements.at(filter_index).selected_values.at(value_index)) {
-			m_filterElements[filter_index].selected_values[value_index] = false;
-			m_filters.removeOne(m_filterElements.at(filter_index).values.at(value_index));
+		if (filter_index < m_filterElements.count() && value_index < m_filterElements.at(filter_index).selected_values.count()) {
+			if (m_filterElements.at(filter_index).selected_values.at(value_index)) {
+				m_filterElements[filter_index].selected_values[value_index] = false;
+				m_filters.removeOne(m_filterElements.at(filter_index).values.at(value_index));
+			}
 		}
 	}
 
@@ -66,7 +80,7 @@ public:
 
 signals:
 	void countChanged();
-	void filtersChanged();
+	void filtersChanged(const bool); //Signature matching
 
 private:
 	struct st_Filter {

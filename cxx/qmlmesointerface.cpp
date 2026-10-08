@@ -1,7 +1,7 @@
 #include "qmlmesointerface.h"
 
 #include "dbmesocyclesmodel.h"
-#include "dbusermodel.h"
+#include "usersmanager.h"
 #include "qmlitemmanager.h"
 #include "qmlmesosplitinterface.h"
 #include "qmlmesocalendarinterface.h"

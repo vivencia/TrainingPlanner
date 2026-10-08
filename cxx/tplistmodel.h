@@ -39,10 +39,12 @@ public:
 	Q_ENUM(SortDirection)
 
 	explicit TPListModel(QObject *parent = nullptr, const uint n_cols = 1);
+	void clear();
 
 	inline uint count() const { return m_rowsMetadata.count(); }
 	inline uint colCount() const { return m_totalCols; }
 
+	int realRow(const int visible_row) const;
 	inline int currentRow() const { return m_currentRow; }
 	inline void setCurrentRow(const int new_row)
 	{
@@ -51,6 +53,7 @@ public:
 			emit currentRowChanged();
 		}
 	}
+	inline const QString &currentValue(const uint column) const { return dataValue(m_currentRow, column); }
 
 	Q_INVOKABLE void showFiltersDialog();
 	inline int filterField() const { return m_filterField; }
@@ -162,7 +165,12 @@ public:
 	 **/
 	Q_INVOKABLE int find(const bool visible_rows, const QString &needle, int field = -1) const;
 
+	/**
+	 * @brief setParentPage
+	 * Absolutely needed when removal of items is required
+	 */
 	Q_INVOKABLE void setParentPage(QQuickItem *parent_page) { m_parentPage = parent_page; }
+	Q_INVOKABLE inline void removeCurrent() { removeItem(m_currentRow); }
 	Q_INVOKABLE inline void removeItem(const int visible_row) {
 		const auto real_row{realRow(visible_row)};
 		if (real_row < 0)
@@ -199,7 +207,7 @@ public slots:
 	 * field = MESO_FIELD_SPLITA), or completed exercises (filter = "1", field =  EXERCISES_FIELD_COMPLETED)
 	 * @see sort() and search()
 	 */
-	void applyFilters();
+	void applyFilters(const bool do_layout_signals = true);
 	inline void removeDialogClosed(int close_action_type)
 	{
 		if (close_action_type == 0)
@@ -243,7 +251,7 @@ protected:
 	 * @brief syncMetadata
 	 * Call after m_modelData is filled with data from batch operations(e.g. after a Database read).
 	 */
-	void syncMetadata(const uint modeldata_count);
+	void syncMetadata(const uint modeldata_count, const bool do_layout_signals = true);
 
 	/**
 	 * @brief insertMetaData/removeMetaData
@@ -252,9 +260,9 @@ protected:
 	 * @param row = real row/index
 	 */
 	void insertMetaData(int row);
-	void removeMetaData(const int row, const bool do_layout_signals = true);
-	int realRow(const int visible_row) const;
-	void setFiltersManager(TPFilterModel *filter_model);
+	void removeMetaData(const int row);
+	inline TPFilterModel *filtersManager() const { return m_filters; }
+	void setFiltersManager(TPFilterModel *filter_model, const bool use_default = false);
 
 	QHash<int, QByteArray> m_roleNames;
 	QList<QStringList> m_modelData;
@@ -281,7 +289,6 @@ private:
 	QObject *m_filtersDialog{nullptr};
 	QQuickItem *m_parentPage{nullptr};
 
-	void clear();
 	void remove(const bool from_qml);
 	void fixVirtualIndices();
 	void insertSort(const uint row);

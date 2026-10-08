@@ -3,7 +3,7 @@
 #include "dbexercisesmodel.h"
 #include "dbexerciseslistmodel.h"
 #include "dbmesocyclesmodel.h"
-#include "dbusermodel.h"
+#include "usersmanager.h"
 
 #include "qmlexercisesdatabaseinterface.h"
 #include "qmlmesocalendarinterface.h"
@@ -93,7 +93,7 @@ void QmlItemManager::startQmlEngine(QQmlApplicationEngine *qml_engine)
 			if (m_testType & TT_CORE) {
 				runTests();
 			} else if (m_testType & TT_QML) {
-				connect(appUserModel(), &DBUserModel::userLoggedIn, this, [this] (const bool first_checkin) {
+				connect(appUserModel(), &UsersManager::userLoggedIn, this, [this] (const bool first_checkin) {
 					//emit cppDataForQMLReady();
 					m_homePage->setProperty("mesoManager", std::move(QVariant::fromValue(appUserModel()->actualMesoModel()->mesoManager(0))));
 				});
@@ -707,11 +707,11 @@ bool QmlItemManager::runTests()
 {
 	//log(TPLogs::LT_DEBUG, "TPListModel Tests"_L1, std::move("Title %1"_L1.arg(QString::number(11))), std::move("Message %1"_L1.arg(QString::number(11))));
 	for (uint i{0}; i < 10; ++i) {
-		//log(TPLogs::LT_DEBUG, "TPListModel Tests"_L1, i % 2 == 0 ? std::move("Title %1"_L1.arg(QString::number(i)))
-		//	: std::move("Header %1"_L1.arg(QString::number(i))), i % 2 == 0 ? std::move("Message %1"_L1.arg(QString::number(10-i)))
-		//	: std::move("Content %1"_L1.arg(QString::number(10-i))));
-		log(TPLogs::LT_DEBUG, "TPListModel Tests"_L1, std::move("Title %1"_L1.arg(QString::number(i))),
-							std::move("Message %1"_L1.arg(QString::number(10-i))));
+		log(TPLogs::LT_DEBUG, "TPListModel Tests"_L1, i % 2 == 0 ? std::move("Title %1"_L1.arg(QString::number(i)))
+			: std::move("Header %1"_L1.arg(QString::number(i))), i % 2 == 0 ? std::move("Message %1"_L1.arg(QString::number(10-i)))
+			: std::move("Content %1"_L1.arg(QString::number(10-i))));
+		//log(TPLogs::LT_DEBUG, "TPListModel Tests"_L1, std::move("Title %1"_L1.arg(QString::number(i))),
+		//					std::move("Message %1"_L1.arg(QString::number(10-i))));
 	}
 	return false;
 }

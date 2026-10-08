@@ -4,7 +4,7 @@
 #include "dbmesocyclestable.h"
 #include "dbexercisesmodel.h"
 #include "dbmesocalendartable.h"
-#include "dbusermodel.h"
+#include "usersmanager.h"
 #include "dbworkoutsorsplitstable.h"
 #include "homepagemesomodel.h"
 #include "qmlitemmanager.h"

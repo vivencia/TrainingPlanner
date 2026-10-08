@@ -36,6 +36,7 @@ print_usage() {
 		-c, --createdb
 		-h,--help
 		-v,--version
+		-m,--quiet
 
 	Options:
 		$$TPSERVER,$NGINX,$PHP_FPM"
@@ -60,6 +61,9 @@ if [ "$1" != "" ]; then
 			;;
 			-h|--help)
 				print_usage
+			;;
+			-m|--quiet)
+				QUIET=0
 			;;
 			--*|-*)
 				COMMAND="${i}"
@@ -334,7 +338,8 @@ case "$COMMAND" in
 				get_tpserver_status "$OPTION"
 			fi
 		fi
-		if [ "$MESSAGE" != "" ]; then
+
+		if [[ $QUIET -eq 1 && "$MESSAGE" != "" ]]; then
 			echo -e "$MESSAGE"
 		fi
 	;;

@@ -2,7 +2,7 @@
 
 #include "scan_network.h"
 #include "websocketserver.h"
-#include "../dbusermodel.h"
+#include "../usersmanager.h"
 #include "../qmlitemmanager.h"
 #include "../osinterface.h"
 #include "../tpdatabasetable.h"

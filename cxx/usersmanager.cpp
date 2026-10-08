@@ -1,4 +1,4 @@
-#include "dbusermodel.h"
+#include "usersmanager.h"
 
 #include "dbexerciseslistmodel.h"
 #include "dbmesocyclesmodel.h"
@@ -31,7 +31,7 @@
 
 #include <utility>
 
-DBUserModel *DBUserModel::_appUserModel{nullptr};
+UsersManager *UsersManager::_appUserModel{nullptr};
 
 constexpr QLatin1StringView local_user_data_file{"user.data"};
 
@@ -49,10 +49,10 @@ static inline QString userNameWithoutConfirmationWarning(const QString &userName
 	return userName.left(sep_idx-1);
 }
 
-DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel) : QObject{parent}
+UsersManager::UsersManager(QObject *parent, const bool bMainUserModel) : QObject{parent}
 {
 	_appUserModel = this;
-	REGISTER_QML_SINGLETON(DBUserModel, this);
+	REGISTER_QML_SINGLETON(UsersManager, this);
 
 	mb_MainUserInfoChanged = false;
 	m_network_msg_title = std::move(tr("TP Network"));
@@ -63,9 +63,9 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel) : QObject{p
 		emit labelsChanged();
 	});
 
-	connect(this, &DBUserModel::cmdFileCreated, this, &DBUserModel::sendUnsentCmdFiles);
-	connect(this, &DBUserModel::userModified, this, &DBUserModel::saveUserInfo);
-	connect(this, &DBUserModel::mainUserConfigurationFinished, this, [this] () {
+	connect(this, &UsersManager::cmdFileCreated, this, &UsersManager::sendUnsentCmdFiles);
+	connect(this, &UsersManager::userModified, this, &UsersManager::saveUserInfo);
+	connect(this, &UsersManager::mainUserConfigurationFinished, this, [this] () {
 		appOsInterface()->initialCheck();
 		if (appItemManager()->appHomePage()) { //When -test is used, appHomePage() will be nullptr
 			appItemManager()->appHomePage()->setProperty("loadMesosFromCoaches", isClient(0));
@@ -73,10 +73,10 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel) : QObject{p
 			appItemManager()->appHomePage()->setProperty("loadMesosForClients", isCoach(0));
 		}
 	});
-	qDebug() << "DBUserModel::DBUserModel running on thread: " << thread()->isMainThread();
+	qDebug() << "UsersManager::UsersManager running on thread: " << thread()->isMainThread();
 }
 
-void DBUserModel::initUserSession()
+void UsersManager::initUserSession()
 {
 	if (!m_db) {
 		m_dbModelInterface = new DBModelInterfaceUser;
@@ -90,7 +90,7 @@ void DBUserModel::initUserSession()
 					appOsInterface()->initialCheck();
 			} else {
 #ifndef Q_OS_ANDROID
-				//Sync all the views(UserInfoListModel) relying on DBUserModel with the new data
+				//Sync all the views(UserInfoListModel) relying on UsersManager with the new data
 				emit userModified(0, USER_MODIFIED_SWITCHING);
 #endif
 				initUserSession();
@@ -170,12 +170,12 @@ void DBUserModel::initUserSession()
 	mb_userLoggedIn = std::nullopt;
 }
 
-QString DBUserModel::mainUserDir() const
+QString UsersManager::mainUserDir() const
 {
 	return TPFilePath::localAppFilesDir() % appSettings()->currentUser() % '/';
 }
 
-void DBUserModel::setOnlineAccount(const bool online_user, const uint user_idx)
+void UsersManager::setOnlineAccount(const bool online_user, const uint user_idx)
 {
 	if (user_idx == 0 && mainUserConfigured()) {
 		if (onlineAccount(user_idx) && !online_user) {
@@ -199,11 +199,11 @@ void DBUserModel::setOnlineAccount(const bool online_user, const uint user_idx)
 		}
 	}
 	emit onlineUserChanged();
-	m_usersData[0][USER_FIELD_ONLINEACCOUNT] = online_user ? '1' : '0';
-	emit userModified(0, USER_FIELD_ONLINEACCOUNT);
+	m_usersData[0][ONLINEACCOUNT] = online_user ? '1' : '0';
+	emit userModified(0, ONLINEACCOUNT);
 }
 
-void DBUserModel::createMainUser(const QString &userid, const QString &name)
+void UsersManager::createMainUser(const QString &userid, const QString &name)
 {
 	if (m_usersData.count() == 0) {
 		m_usersData.insert(0, std::move(QStringList{} << (userid.isEmpty() ? std::move(generateUniqueUserId()) : userid) <<
@@ -216,7 +216,7 @@ void DBUserModel::createMainUser(const QString &userid, const QString &name)
 	}
 }
 
-void DBUserModel::removeMainUser(const bool confirm)
+void UsersManager::removeMainUser(const bool confirm)
 {
 	if (!m_usersData.isEmpty()) {
 		if (!confirm) {
@@ -234,7 +234,7 @@ void DBUserModel::removeMainUser(const bool confirm)
 	}
 }
 
-void DBUserModel::removeUser(const int user_idx, const bool remove_local, const bool remove_online)
+void UsersManager::removeUser(const int user_idx, const bool remove_local, const bool remove_online)
 {
 	if (user_idx >= 1 && user_idx < m_usersData.count()) {
 		if (onlineAccount(user_idx)) {
@@ -253,7 +253,7 @@ void DBUserModel::removeUser(const int user_idx, const bool remove_local, const 
 	}
 }
 
-int DBUserModel::userIdxFromFieldValue(const uint field, const QString &value, const bool exact_match) const
+int UsersManager::userIdxFromFieldValue(const uint field, const QString &value, const bool exact_match) const
 {
 	int user_idx{0};
 	if (exact_match) {
@@ -277,32 +277,32 @@ int DBUserModel::userIdxFromFieldValue(const uint field, const QString &value, c
 	}
 }
 
-const QString &DBUserModel::userIdFromFieldValue(const uint field, const QString &value) const
+const QString &UsersManager::userIdFromFieldValue(const uint field, const QString &value) const
 {
 	const auto &user{std::find_if(m_usersData.cbegin(), m_usersData.cend(), [field,value] (const auto &user_info) {
 		return user_info.at(field) == value;
 	})};
 	if (user != m_usersData.cend())
-		return user->at(USER_FIELD_ID);
+		return user->at(ID);
 	return m_emptyString;
 }
 
-void DBUserModel::showPasswordDialogForMainUser(const int mode, QQuickItem *parent_page)
+void UsersManager::showPasswordDialogForMainUser(const int mode, QQuickItem *parent_page)
 {
 	const int requestid{appUtils()->idFromString(userId(0) % "showPasswordDialog"_L1)};
 	QString title;
 	switch (mode) {
 	case QmlItemManager::DM_GET_PASSWORD:
 		title = std::move(tr("TP app password"));
-		connect(appItemManager(), &QmlItemManager::passwordAcquired, this, &DBUserModel::checkPassword, Qt::SingleShotConnection);
+		connect(appItemManager(), &QmlItemManager::passwordAcquired, this, &UsersManager::checkPassword, Qt::SingleShotConnection);
 		break;
 	case QmlItemManager::DM_NEW_PASSWORD:
 		title = std::move(tr("New password"));
-		connect(appItemManager(), &QmlItemManager::passwordCreated, this, &DBUserModel::setNewPassword, Qt::SingleShotConnection);
+		connect(appItemManager(), &QmlItemManager::passwordCreated, this, &UsersManager::setNewPassword, Qt::SingleShotConnection);
 		break;
 	case QmlItemManager::DM_CHANGE_PASSWORD:
 		title = std::move(tr("Change password"));
-		connect(appItemManager(), &QmlItemManager::passwordChanged, this, &DBUserModel::checkChangedPassword, Qt::SingleShotConnection);
+		connect(appItemManager(), &QmlItemManager::passwordChanged, this, &UsersManager::checkChangedPassword, Qt::SingleShotConnection);
 		break;
 	default:
 		Q_UNREACHABLE();
@@ -311,7 +311,7 @@ void DBUserModel::showPasswordDialogForMainUser(const int mode, QQuickItem *pare
 }
 
 //Set requestid to -1 when this function is in the middle of a chain of calls and not the initiator of the chain
-void DBUserModel::checkPassword(const bool proceed, const int requestid, const QString &password)
+void UsersManager::checkPassword(const bool proceed, const int requestid, const QString &password)
 {
 	if (!proceed) {
 		disconnect(appItemManager(), &QmlItemManager::passwordAcquired, this, nullptr);
@@ -341,7 +341,7 @@ void DBUserModel::checkPassword(const bool proceed, const int requestid, const Q
 	}
 }
 
-void DBUserModel::setNewPassword(const bool proceed, const int requestid, const QString &new_password)
+void UsersManager::setNewPassword(const bool proceed, const int requestid, const QString &new_password)
 {
 	disconnect(appItemManager(), &QmlItemManager::passwordCreated, this, nullptr);
 	auto conn{std::make_shared<QMetaObject::Connection>()};
@@ -367,13 +367,13 @@ void DBUserModel::setNewPassword(const bool proceed, const int requestid, const 
 	appKeyChain()->writeKey(userId(0), new_password);
 }
 
-void DBUserModel::checkChangedPassword(const bool proceed, const int requestid, const QString &old_passwd, const QString &new_passwd)
+void UsersManager::checkChangedPassword(const bool proceed, const int requestid, const QString &old_passwd, const QString &new_passwd)
 {
 	if (!proceed) {
 		disconnect(appItemManager(), &QmlItemManager::passwordChanged, this, nullptr);
 		return;
 	}
-	connect(this, &DBUserModel::userPasswordOK, this, [=,this] (const bool password_ok) {
+	connect(this, &UsersManager::userPasswordOK, this, [=,this] (const bool password_ok) {
 		if (!password_ok) {
 			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_WRONG_PASSWORD, std::move(tr("Unable to change "
 															"password because the current password entered is wrong")));
@@ -412,7 +412,7 @@ void DBUserModel::checkChangedPassword(const bool proceed, const int requestid, 
 	checkPassword(true, -1, old_passwd);
 }
 
-void DBUserModel::setPhone(const int user_idx, QString new_phone_prefix, const QString &new_phone)
+void UsersManager::setPhone(const int user_idx, QString new_phone_prefix, const QString &new_phone)
 {
 	switch (new_phone_prefix.length()) {
 	case 0: setPhoneBasedOnLocale(); break;
@@ -427,14 +427,14 @@ void DBUserModel::setPhone(const int user_idx, QString new_phone_prefix, const Q
 	}
 	if (new_phone_prefix.at(0) != '+')
 		new_phone_prefix.prepend('+');
-	m_usersData[user_idx][USER_FIELD_PHONE] = std::move(new_phone_prefix % new_phone);
-	emit userModified(user_idx, USER_FIELD_PHONE);
+	m_usersData[user_idx][PHONE] = std::move(new_phone_prefix % new_phone);
+	emit userModified(user_idx, PHONE);
 }
 
 //Returns avatar.png if it exists or a defaultAvatar based on the user's sex. If the file exists check once a day
 //if the local file is updated, i.e., download the user's new avatar file if the local file is older
 //than the file sitting on the server. .avatar.query is updated only once a day
-QString DBUserModel::avatar(const int user_idx)
+QString UsersManager::avatar(const int user_idx)
 {
 	QString local_avatar;
 	if (user_idx >= 0 && user_idx < m_usersData.count()) [[likely]] {
@@ -468,7 +468,7 @@ QString DBUserModel::avatar(const int user_idx)
 	return local_avatar;
 }
 
-void DBUserModel::setAvatar(const int user_idx, const QString &new_avatar, const bool saveToDisk, const bool upload)
+void UsersManager::setAvatar(const int user_idx, const QString &new_avatar, const bool saveToDisk, const bool upload)
 {
 	if (user_idx >= 0 && user_idx < m_usersData.count()) {
 		if (saveToDisk && !new_avatar.isEmpty()) {
@@ -479,13 +479,13 @@ void DBUserModel::setAvatar(const int user_idx, const QString &new_avatar, const
 			const QString &local_avatar{userDir(user_idx) % "avatar.png"_L1};
 			img.saveToDisk(local_avatar);
 		}
-		emit userModified(user_idx, USER_FIELD_AVATAR);
+		emit userModified(user_idx, AVATAR);
 		if (onlineAccount() && user_idx == 0 && upload)
 			sendAvatarToServer();
 	}
 }
 
-void DBUserModel::setUserCategory(const int user_idx, const int new_category, const bool add)
+void UsersManager::setUserCategory(const int user_idx, const int new_category, const bool add)
 {
 	uint category{userCategory(user_idx)};
 	const bool has_category{(category & new_category) != 0};
@@ -493,8 +493,8 @@ void DBUserModel::setUserCategory(const int user_idx, const int new_category, co
 		return;
 
 	auto change_category = [this,user_idx] (const int final_category) {
-		m_usersData[user_idx][USER_FIELD_USER_CATEGORY] = std::move(QString::number(final_category));
-		emit userModified(user_idx, USER_FIELD_USER_CATEGORY);
+		m_usersData[user_idx][CATEGORY] = std::move(QString::number(final_category));
+		emit userModified(user_idx, CATEGORY);
 		emit userCategoryChanged(user_idx);
 	};
 
@@ -538,7 +538,7 @@ void DBUserModel::setUserCategory(const int user_idx, const int new_category, co
 }
 
 #ifndef Q_OS_ANDROID
-void DBUserModel::getAllOnlineUsers()
+void UsersManager::getOnlineUsers()
 {
 	if (canConnectToServer()) {
 		const int requestid{appUtils()->generateUniqueId("getAllOnlineUsers"_L1)};
@@ -547,22 +547,27 @@ void DBUserModel::getAllOnlineUsers()
 												(const int request_id, const int ret_code, const QStringList &ret_list) {
 			if (request_id == requestid) {
 				disconnect(*conn);
-				if (!m_allUsers) {
-					m_allUsers = new UserInfoListModel{this};
-					m_allUsers->setSelectEntireRow(true);
+				if (!m_onlineUsers) {
+					m_onlineUsers = new UserInfoListModel{this};
+					m_onlineUsers->setSelectEntireRow(true);
 				} else {
-					m_allUsers->clear();
+					m_onlineUsers->clear();
 				}
+				QList<QStringList> users_data;
+				auto n_users{ret_list.count()};
 				for (const auto &userid : std::as_const(ret_list)) {
 					const int requestid2{static_cast<int>(userid.toLong())};
 					auto conn2{std::make_shared<QMetaObject::Connection>()};
-					*conn2 = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,conn2,requestid2]
-											(const int request_id, const int ret_code, const QString &ret_string) mutable {
+					*conn2 = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this,
+						[this,conn2,requestid2,users_data,&n_users] (const int request_id, const int ret_code, const QString &ret_string) mutable {
 						if (request_id == requestid2) {
 							disconnect(*conn2);
 							if (ret_code == TP_RET_CODE_SUCCESS) {
-								if (m_allUsers->dataFromString(ret_string))
-									emit allUsersChanged();
+								users_data.append(std::move(ret_string.split('\n')));
+								if (--n_users == 0) {
+									m_onlineUsers->setModelData(std::move(users_data));
+									emit onlineUsersChanged();
+								}
 							}
 						}
 					});
@@ -574,42 +579,47 @@ void DBUserModel::getAllOnlineUsers()
 	}
 }
 
-void DBUserModel::switchUser()
+void UsersManager::getLocalUsers()
 {
-	if (m_allUsers->currentRow() >= 0) {
-		QString userid{m_allUsers->allUsersData(USER_FIELD_ID).toString()};
-		connect(this, &DBUserModel::userSwitchPhase1Finished, this, [this,userid] (const bool success) mutable {
+//TODO
+}
+
+void UsersManager::switchUser(UserInfoListModel *user_model)
+{
+	if (user_model->currentRow() >= 0) {
+		QString userid{user_model->currentValue(ID)};
+		connect(this, &UsersManager::userSwitchPhase1Finished, this, [this,userid] (const bool success) mutable {
 			if (success)
 				userSwitchingActions(false, std::move(userid));
 		}, Qt::SingleShotConnection);
-		switchToUser(userid, m_allUsers->allUsersData(USER_FIELD_NAME).toString());
+		switchToUser(userid, user_model->currentValue(NAME));
 	}
 }
 
-void DBUserModel::removeOtherUser()
+void UsersManager::removeUser(UserInfoListModel *user_model)
 {
-	const QString &userid{m_allUsers->allUsersData(USER_FIELD_ID).toString()};
+	const QString &userid{user_model->currentValue(ID)};
 	const QLatin1StringView seed{"remove" % userid.toLatin1()};
 	const int requestid{appUtils()->generateUniqueId(seed)};
 	auto conn{std::make_shared<QMetaObject::Connection>()};
-	*conn = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,userid,conn,requestid]
+	*conn = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,userid,conn,requestid,user_model]
 													(const int request_id, const int ret_code, const QString &ret_string) {
 		if (request_id == requestid) {
 			disconnect(*conn);
 			appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_MESSAGE, std::move(
-				appUtils()->string_strings({tr("User removal"), m_allUsers->allUsersData(USER_FIELD_NAME).toString()
+				appUtils()->string_strings({tr("User removal"), user_model->currentValue(NAME)
 				% ret_string}, record_separator)), Qt::AlignTop|Qt::AlignHCenter, std::move(
 														ret_code == TP_RET_CODE_SUCCESS ? "set-completed" : "error"));
 			if (ret_code == TP_RET_CODE_SUCCESS) {
 				appUtils()->rmDir(userDir(userid));
-				m_allUsers->removeUserInfo(m_allUsers->currentRow());
+				user_model->removeCurrent();
 			}
 		}
 	});
 	appOnlineServices()->removeUser(requestid, userid);
 }
 
-void DBUserModel::userSwitchingActions(const bool create, QString &&userid)
+void UsersManager::userSwitchingActions(const bool create, QString &&userid)
 {
 	mb_userLoggedIn = false;
 	appSettings()->importFromUserConfig(userid);
@@ -620,18 +630,18 @@ void DBUserModel::userSwitchingActions(const bool create, QString &&userid)
 }
 #endif
 
-bool DBUserModel::mainUserConfigured() const
+bool UsersManager::mainUserConfigured() const
 {
 	bool ret{false};
 	if (m_usersData.count() >= 1) {
 		ret = (onlineAccount(0) && !email(0).isEmpty());
-		ret &= (isCoach(0) == !m_usersData.at(0).at(USER_FIELD_COACHROLE).isEmpty());
-		ret &= (isClient(0) == !m_usersData.at(0).at(USER_FIELD_GOAL).isEmpty());
+		ret &= (isCoach(0) == !m_usersData.at(0).at(COACHROLE).isEmpty());
+		ret &= (isClient(0) == !m_usersData.at(0).at(GOAL).isEmpty());
 	}
 	return ret;
 }
 
-void DBUserModel::acceptUser(const uint user_idx)
+void UsersManager::acceptUser(const uint user_idx)
 {
 	if (isCoach(user_idx)) {
 		addCoach(user_idx); //Integrate a pending coach into the available coaches list
@@ -646,7 +656,7 @@ void DBUserModel::acceptUser(const uint user_idx)
 	emit userModified(user_idx, USER_MODIFIED_ACCEPTED);
 }
 
-void DBUserModel::checkExistingAccount(const QString &email, const QString &password)
+void UsersManager::checkExistingAccount(const QString &email, const QString &password)
 {
 	if (canConnectToServer()) {
 		const int requestid{appUtils()->generateUniqueId("checkExistingAccount"_L1)};
@@ -669,7 +679,7 @@ void DBUserModel::checkExistingAccount(const QString &email, const QString &pass
 	}
 }
 
-void DBUserModel::importUserDataFromServer(const QString &userid, const QString &password)
+void UsersManager::importUserDataFromServer(const QString &userid, const QString &password)
 {
 	if (canConnectToServer()) {
 		const int requestid{appUtils()->generateUniqueId("importFromOnlineServer"_L1)};
@@ -693,7 +703,7 @@ void DBUserModel::importUserDataFromServer(const QString &userid, const QString 
 	}
 }
 
-void DBUserModel::setCoachPublicStatus(const bool bPublic)
+void UsersManager::setCoachPublicStatus(const bool bPublic)
 {
 	mb_coachPublic = bPublic;
 	if (canConnectToServer()) {
@@ -715,7 +725,7 @@ void DBUserModel::setCoachPublicStatus(const bool bPublic)
 	}
 }
 
-QString DBUserModel::resume(const uint user_idx) const
+QString UsersManager::resume(const uint user_idx) const
 {
 	TPFilePath tp_filename{};
 	tp_filename.setOwnerUser(userId(0));
@@ -732,7 +742,7 @@ QString DBUserModel::resume(const uint user_idx) const
 }
 
 
-void DBUserModel::setMainUserConfigurationFinished()
+void UsersManager::setMainUserConfigurationFinished()
 {
 	if (canConnectToServer()) {
 		if (!mainUserLoggedIn()) {
@@ -748,11 +758,11 @@ void DBUserModel::setMainUserConfigurationFinished()
 	emit mainUserConfigurationFinished();
 }
 
-void DBUserModel::sendRequestToCoaches(UserInfoListModel *users_list)
+void UsersManager::sendRequestToCoaches(UserInfoListModel *users_list)
 {
 	for (auto i{0}; i < users_list->count(); ++i) {
 		if (users_list->isSelected(i)) {
-			const QString &coach_id{users_list->data(USER_FIELD_ID, i)};
+			const QString &coach_id{users_list->dataValue(i, ID)};
 			const int requestid{appUtils()->generateUniqueId(QLatin1StringView{QString{"sendRequestToCoaches"_L1 % coach_id}.toLatin1()})};
 			auto conn{std::make_shared<QMetaObject::Connection>()};
 			*conn = connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [=,this]
@@ -760,12 +770,12 @@ void DBUserModel::sendRequestToCoaches(UserInfoListModel *users_list)
 				if (request_id == requestid) {
 					disconnect(*conn);
 					if (ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS) {
-						const int user_idx{users_list->userIdx(i)};
+						const int user_idx{users_list->realRow(i)};
 						setIsConfirmed(user_idx, true);
 						setIsAvailable(user_idx, false);
 						appItemManager()->displayMessageOnAppWindow(TP_RET_CODE_CUSTOM_SUCCESS, std::move(
 							appUtils()->string_strings({tr("Coach contacting"), tr("Online coach contacted ")
-							% users_list->data(i, USER_FIELD_NAME)}, record_separator)));
+							% users_list->dataValue(i, NAME)}, record_separator)));
 					} else {
 						appItemManager()->displayMessageOnAppWindow(ret_code, std::move(QString{ret_string}));
 					}
@@ -776,7 +786,7 @@ void DBUserModel::sendRequestToCoaches(UserInfoListModel *users_list)
 	}
 }
 
-void DBUserModel::getOnlineCoachesList(const bool get_list_only)
+void UsersManager::getOnlineCoachesList(const bool get_list_only)
 {
 	if (canConnectToServer() && onlineAccount()) {
 		const int requestid{appUtils()->generateUniqueId("getOnlineCoachesList"_L1)};
@@ -792,13 +802,13 @@ void DBUserModel::getOnlineCoachesList(const bool get_list_only)
 						return;
 					}
 					for (const auto &user_info : std::as_const(m_usersData)) {
-						const auto idx{coaches.indexOf(user_info.at(USER_FIELD_ID))};
+						const auto idx{coaches.indexOf(user_info.at(ID))};
 						if (idx >= 0)
 							coaches.removeAt(idx);
 					}
 					qsizetype n_connections{coaches.count()};
 					auto conn{std::make_shared<QMetaObject::Connection>()};
-					*conn = connect(this, &DBUserModel::userProfileAcquired, this, [this,conn,coaches,n_connections]
+					*conn = connect(this, &UsersManager::userProfileAcquired, this, [this,conn,coaches,n_connections]
 																(const QString &userid, const int ret_code) mutable {
 						if (--n_connections == 0)
 							disconnect(*conn);
@@ -814,14 +824,14 @@ void DBUserModel::getOnlineCoachesList(const bool get_list_only)
 	}
 }
 
-int DBUserModel::exportToFile(const uint user_idx, const TPFilePath &tp_filename, const bool write_header) const
+int UsersManager::exportToFile(const uint user_idx, const TPFilePath &tp_filename, const bool write_header) const
 {
 	const QList<uint> &export_user_idx{QList<uint>{} << user_idx};
 	const auto ret{appUtils()->writeDataToFile(tp_filename.toString(), write_header ? appUtils()->userFileIdentifier : QString{}, m_usersData)};
 	return ret;
 }
 
-int DBUserModel::exportToFormattedFile(const uint user_idx, const TPFilePath &tp_filename) const
+int UsersManager::exportToFormattedFile(const uint user_idx, const TPFilePath &tp_filename) const
 {
 	const QList<uint> &export_user_idx{QList<uint>{} << user_idx};
 	const QList<std::function<QString(void)>> &field_description{QList<std::function<QString(void)>>{} <<
@@ -849,14 +859,14 @@ int DBUserModel::exportToFormattedFile(const uint user_idx, const TPFilePath &tp
 	return ret;
 }
 
-int DBUserModel::importFromFile(const TPFilePath &tp_filename)
+int UsersManager::importFromFile(const TPFilePath &tp_filename)
 {
 	const auto ret{appUtils()->readDataFromFile(tp_filename.toString(), m_usersData, USER_N_FIELDS,
 																						appUtils()->userFileIdentifier)};
 	return ret;
 }
 
-int DBUserModel::importFromFormattedFile(const TPFilePath &tp_filename)
+int UsersManager::importFromFormattedFile(const TPFilePath &tp_filename)
 {
 	const auto ret{appUtils()->readDataFromFormattedFile(
 							tp_filename.toString(),
@@ -868,7 +878,7 @@ int DBUserModel::importFromFormattedFile(const TPFilePath &tp_filename)
 	return ret;
 }
 
-bool DBUserModel::importFromString(const QString &user_data)
+bool UsersManager::importFromString(const QString &user_data)
 {
 	QStringList modeldata{std::move(user_data.split('\n'))};
 	if (modeldata.count() < USER_N_FIELDS)
@@ -880,7 +890,7 @@ bool DBUserModel::importFromString(const QString &user_data)
 	return true;
 }
 
-int DBUserModel::newUserFromFile(const TPFilePath &tp_filename, const std::optional<bool> &file_formatted, uint category)
+int UsersManager::newUserFromFile(const TPFilePath &tp_filename, const std::optional<bool> &file_formatted, uint category)
 {
 	int import_result{TP_RET_CODE_IMPORT_FAILED};
 	if (file_formatted.has_value()) {
@@ -902,18 +912,18 @@ int DBUserModel::newUserFromFile(const TPFilePath &tp_filename, const std::optio
 			setIsClient(user_idx, false);
 		setIsConfirmed(user_idx, false);
 	} else {
-		m_usersData[user_idx][USER_FIELD_USER_CATEGORY] = std::move(QString::number(category));
+		m_usersData[user_idx][CATEGORY] = std::move(QString::number(category));
 	}
-	emit userModified(user_idx, USER_FIELD_USER_CATEGORY);
+	emit userModified(user_idx, CATEGORY);
 	return TP_RET_CODE_IMPORT_OK;
 }
 
-void DBUserModel::saveUserInfo(const uint user_idx, const uint field)
+void UsersManager::saveUserInfo(const uint user_idx, const uint field)
 {
 	if (field < USER_N_FIELDS) {
 		if (user_idx == 0) {
 			mb_MainUserInfoChanged = true;
-			if (field == USER_FIELD_USER_CATEGORY)
+			if (field == CATEGORY)
 				emit userCategoryChanged(user_idx);
 		}
 		m_dbModelInterface->setModified(user_idx, field);
@@ -924,19 +934,19 @@ void DBUserModel::saveUserInfo(const uint user_idx, const uint field)
 		case USER_MODIFIED_CREATED:
 		case USER_MODIFIED_IMPORTED:
 		case USER_MODIFIED_ACCEPTED:
-			m_usersData[user_idx][USER_FIELD_INSERTTIME] = std::move(generateUniqueUserId());
+			m_usersData[user_idx][INSERTTIME] = std::move(generateUniqueUserId());
 			m_dbModelInterface->setModified(user_idx, field);
 			appThreadManager()->runAction(m_db, ThreadManager::InsertRecords);
 			break;
 		case USER_MODIFIED_REMOVED:
-			m_dbModelInterface->setRemovalInfo(user_idx, QList<uint>{1, USER_FIELD_ID});
+			m_dbModelInterface->setRemovalInfo(user_idx, QList<uint>{1, ID});
 			appThreadManager()->runAction(m_db, ThreadManager::DeleteRecords);
 			break;
 		}
 	}
 }
 
-void DBUserModel::sendUnsentCmdFiles(const QString &dir)
+void UsersManager::sendUnsentCmdFiles(const QString &dir)
 {
 	QFileInfoList cmd_files;
 	appUtils()->scanDir(dir, cmd_files, '*' % TPDatabaseTable::cmd_file_extension);
@@ -944,7 +954,7 @@ void DBUserModel::sendUnsentCmdFiles(const QString &dir)
 		appOnlineServices()->sendCmdFileToServer(cmd_file.absoluteFilePath());
 }
 
-QString DBUserModel::getPhonePart(const QString &str_phone, const bool prefix) const
+QString UsersManager::getPhonePart(const QString &str_phone, const bool prefix) const
 {
 	if (str_phone.length() > 0) {
 		const qsizetype idx{str_phone.indexOf('(')};
@@ -958,7 +968,7 @@ QString DBUserModel::getPhonePart(const QString &str_phone, const bool prefix) c
 	return QString{};
 }
 
-void DBUserModel::setPhoneBasedOnLocale()
+void UsersManager::setPhoneBasedOnLocale()
 {
 	if (phoneCountryPrefix(0).length() <= 0) {
 		QString phone_country_prefix;
@@ -972,15 +982,15 @@ void DBUserModel::setPhoneBasedOnLocale()
 	}
 }
 
-inline QString DBUserModel::generateUniqueUserId() const
+inline QString UsersManager::generateUniqueUserId() const
 {
 	return QString::number(QDateTime::currentMSecsSinceEpoch());
 }
 
-void DBUserModel::onlineCheckIn()
+void UsersManager::onlineCheckIn()
 {
 	if (mainUserConfigured() && onlineAccount()) {
-		connect(this, &DBUserModel::userLoggedIn, this, [this] (const bool first_checkin) {
+		connect(this, &UsersManager::userLoggedIn, this, [this] (const bool first_checkin) {
 			if (first_checkin) {
 				sendUserDataToServerDatabase();
 				sendProfileToServer();
@@ -994,7 +1004,7 @@ void DBUserModel::onlineCheckIn()
 	}
 }
 
-void DBUserModel::loginUser()
+void UsersManager::loginUser()
 {
 	const int requestid{appUtils()->generateUniqueId("loginUser"_L1)};
 	auto conn{std::make_shared<QMetaObject::Connection>()};
@@ -1042,10 +1052,10 @@ void DBUserModel::loginUser()
 	appOnlineServices()->userLogin(requestid);
 }
 
-void DBUserModel::switchToUser(const QString &new_userid, const QString &test_username)
+void UsersManager::switchToUser(const QString &new_userid, const QString &test_username)
 {
 	QTimer *download_timeout{new QTimer{this}};
-	connect(this, &DBUserModel::allUserFilesDownloaded, this, [=,this] (const bool success) {
+	connect(this, &UsersManager::allUserFilesDownloaded, this, [=,this] (const bool success) {
 		delete download_timeout;
 		if (!success) {
 			#ifndef Q_OS_ANDROID
@@ -1079,7 +1089,7 @@ void DBUserModel::switchToUser(const QString &new_userid, const QString &test_us
 	#endif
 }
 
-void DBUserModel::downloadAllUserFiles(const QString &userid)
+void UsersManager::downloadAllUserFiles(const QString &userid)
 {
 	static int total_dirs{0};
 	static int total_files{0};
@@ -1122,16 +1132,16 @@ void DBUserModel::downloadAllUserFiles(const QString &userid)
 }
 
 //Only applicable to the main user that is a coach
-void DBUserModel::checkIfCoachRegisteredOnline()
+void UsersManager::checkIfCoachRegisteredOnline()
 {
-	connect(this, &DBUserModel::coachesListReceived, this, [this] (const QStringList &coaches_list) {
+	connect(this, &UsersManager::coachesListReceived, this, [this] (const QStringList &coaches_list) {
 		mb_coachRegistered = coaches_list.contains(userId(0));
 		emit coachOnlineStatus(mb_coachRegistered == true);
 	}, Qt::SingleShotConnection);
 	getOnlineCoachesList(true);
 }
 
-void DBUserModel::getUserOnlineProfile(const QString &userid)
+void UsersManager::getUserOnlineProfile(const QString &userid)
 {
 	TPFilePathPtr tp_filename{TPFilePath::newTPFilePath(userid % TPUtils::TP_FILE_EXTENSION, userId(), userid)};
 	const auto res{appOnlineServices()->downloadFileFromServer(*tp_filename)};
@@ -1151,27 +1161,27 @@ void DBUserModel::getUserOnlineProfile(const QString &userid)
 	}
 }
 
-void DBUserModel::sendProfileToServer()
+void UsersManager::sendProfileToServer()
 {
 	TPFilePath tp_filename{userId() % TPUtils::TP_FILE_EXTENSION, userId(), userId(), {}};
 	if (exportToFile(0, tp_filename, true) == TP_RET_CODE_EXPORT_OK)
 		static_cast<void>(appOnlineServices()->sendFileToServer(tp_filename));
 }
 
-void DBUserModel::sendUserDataToServerDatabase()
+void UsersManager::sendUserDataToServerDatabase()
 {
 	TPFilePath tp_filename{local_user_data_file, userId(), userId(), {}};
 	if (exportToFile(0, tp_filename, false) == TP_RET_CODE_EXPORT_OK)
 		static_cast<void>(appOnlineServices()->sendFileToServer(tp_filename, true));
 }
 
-void DBUserModel::sendAvatarToServer()
+void UsersManager::sendAvatarToServer()
 {
 	static_cast<void>(appOnlineServices()->sendFileToServer(*TPFilePath::newTPFilePath(avatar(0))));
 }
 
 //user_idx must always be > 0 and < total users
-void DBUserModel::downloadAvatarFromServer(const uint user_idx)
+void UsersManager::downloadAvatarFromServer(const uint user_idx)
 {
 	auto tp_filename{TPFilePath::newTPFilePath("avatar.png"_L1, userId(0), userId(user_idx))};
 	const auto res{appOnlineServices()->downloadFileFromServer(*tp_filename)};
@@ -1188,7 +1198,7 @@ void DBUserModel::downloadAvatarFromServer(const uint user_idx)
 	}
 }
 
-void DBUserModel::startServerPolling()
+void UsersManager::startServerPolling()
 {
 	if (!m_mainTimer) {
 		m_mainTimer = new QTimer{this};
@@ -1207,12 +1217,12 @@ void DBUserModel::startServerPolling()
 	}
 }
 
-void DBUserModel::pollServer()
+void UsersManager::pollServer()
 {
 	if (isCoach(0)) {
 		if (!mb_coachRegistered) {
 			//poll immediatelly after receiving confirmation the man user is  a registerd coach
-			connect(this, &DBUserModel::coachOnlineStatus, this, [this] (bool registered) {
+			connect(this, &UsersManager::coachOnlineStatus, this, [this] (bool registered) {
 				if (registered) {
 					pollClientsRequests();
 					pollCurrentClients();
@@ -1233,7 +1243,7 @@ void DBUserModel::pollServer()
 	}
 }
 
-void DBUserModel::pollClientsRequests()
+void UsersManager::pollClientsRequests()
 {
 	const int requestid{appUtils()->generateUniqueId("pollClientsRequests"_L1)};
 	auto conn{std::make_shared<QMetaObject::Connection>()};
@@ -1245,7 +1255,7 @@ void DBUserModel::pollClientsRequests()
 				QStringList requests_list{std::move(ret_string.split(' ', Qt::SkipEmptyParts))};
 				qsizetype n_connections{requests_list.count()};
 				auto conn2{std::make_shared<QMetaObject::Connection>()};
-				*conn2 = connect(this, &DBUserModel::userProfileAcquired, this, [this,conn2,requests_list,n_connections]
+				*conn2 = connect(this, &UsersManager::userProfileAcquired, this, [this,conn2,requests_list,n_connections]
 														(const QString &userid, const int ret_code) mutable {
 					if (requests_list.contains(userid)) {
 						if (--n_connections == TP_RET_CODE_SUCCESS)
@@ -1262,7 +1272,7 @@ void DBUserModel::pollClientsRequests()
 	appOnlineServices()->checkClientsRequests(requestid);
 }
 
-void DBUserModel::addAvailableClient(const QString &user_id)
+void UsersManager::addAvailableClient(const QString &user_id)
 {
 	if (findUserById(user_id) == -1) {
 		TPFilePath tp_filename{user_id % TPUtils::TP_FILE_EXTENSION, userId(), user_id, {}};
@@ -1270,7 +1280,7 @@ void DBUserModel::addAvailableClient(const QString &user_id)
 	}
 }
 
-void DBUserModel::pollCoachesAnswers()
+void UsersManager::pollCoachesAnswers()
 {
 	const int requestid{appUtils()->generateUniqueId("pollCoachesAnswers"_L1)};
 	auto conn{std::make_shared<QMetaObject::Connection>()};
@@ -1281,7 +1291,7 @@ void DBUserModel::pollCoachesAnswers()
 			if (ret_code == TP_RET_CODE_SUCCESS || ret_code == TP_RET_CODE_NO_CHANGES_SUCCESS) {
 				QStringList answers_list{std::move(ret_string.split(' ', Qt::SkipEmptyParts))};
 				for (QString coach_id : std::as_const(answers_list)) {
-					const int user_idx{userIdxFromFieldValue(USER_FIELD_ID, coach_id)};
+					const int user_idx{userIdxFromFieldValue(ID, coach_id)};
 					if (user_idx != -1) {
 						const bool add_coach{coach_id.endsWith("AOK"_L1)};
 						coach_id.chop(3);
@@ -1300,7 +1310,7 @@ void DBUserModel::pollCoachesAnswers()
 	appOnlineServices()->checkCoachesAnswers(requestid);
 }
 
-void DBUserModel::addAvailableCoach(const QString &user_id)
+void UsersManager::addAvailableCoach(const QString &user_id)
 {
 	if (findUserById(user_id) == -1) {
 		TPFilePath tp_filename{user_id % TPUtils::TP_FILE_EXTENSION, userId(), user_id, {}};
@@ -1309,7 +1319,7 @@ void DBUserModel::addAvailableCoach(const QString &user_id)
 	}
 }
 
-void DBUserModel::pollCurrentClients()
+void UsersManager::pollCurrentClients()
 {
 	const int requestid{appUtils()->generateUniqueId("pollCurrentClients"_L1)};
 	auto conn{std::make_shared<QMetaObject::Connection>()};
@@ -1344,7 +1354,7 @@ void DBUserModel::pollCurrentClients()
 	appOnlineServices()->checkCurrentClients(requestid);
 }
 
-void DBUserModel::pollCurrentCoaches()
+void UsersManager::pollCurrentCoaches()
 {
 	const int requestid{appUtils()->generateUniqueId("pollCurrentCoaches"_L1)};
 	auto conn{std::make_shared<QMetaObject::Connection>()};
@@ -1376,21 +1386,21 @@ void DBUserModel::pollCurrentCoaches()
 	appOnlineServices()->checkCurrentCoaches(requestid);
 }
 
-void DBUserModel::revokeCoachStatus()
+void UsersManager::revokeCoachStatus()
 {
 	for (auto i{m_usersData.count() - 1}; i >= 1; --i)
 		if (isClient(i))
 			removeUser(i);
 }
 
-void DBUserModel::revokeClientStatus()
+void UsersManager::revokeClientStatus()
 {
 	for (qsizetype i{m_usersData.count() - 1}; i >= 1; --i)
 		if (isCoach(i))
 			removeUser(i);
 }
 
-void DBUserModel::unregisterUser()
+void UsersManager::unregisterUser()
 {
 	const int requestid{appUtils()->generateUniqueId("unregisterUserOnline"_L1)};
 	auto conn = std::make_shared<QMetaObject::Connection>();
@@ -1419,7 +1429,7 @@ void DBUserModel::unregisterUser()
 	});
 }
 
-void DBUserModel::addCoach(const uint user_idx, const bool notify)
+void UsersManager::addCoach(const uint user_idx, const bool notify)
 {
 	setUserCategory(user_idx, UC_CONFIRMED, true);
 	setUserCategory(0, UC_HAS_COACH, true);
@@ -1431,7 +1441,7 @@ void DBUserModel::addCoach(const uint user_idx, const bool notify)
 	}
 }
 
-void DBUserModel::delCoach(const uint user_idx)
+void UsersManager::delCoach(const uint user_idx)
 {
 	if (isConfirmed(user_idx)) {
 		bool has_other_coaches{false};
@@ -1450,7 +1460,7 @@ void DBUserModel::delCoach(const uint user_idx)
 	appOnlineServices()->removeCoachFromClient(0, userId(user_idx));
 }
 
-void DBUserModel::addClient(const uint user_idx, const bool notify)
+void UsersManager::addClient(const uint user_idx, const bool notify)
 {
 	setUserCategory(user_idx, UC_CONFIRMED, true);
 	setUserCategory(0, UC_HAS_CLIENT, true);
@@ -1462,7 +1472,7 @@ void DBUserModel::addClient(const uint user_idx, const bool notify)
 	}
 }
 
-void DBUserModel::delClient(const uint user_idx)
+void UsersManager::delClient(const uint user_idx)
 {
 	if (isConfirmed(user_idx)) {
 		bool has_other_clients{false};
@@ -1481,19 +1491,19 @@ void DBUserModel::delClient(const uint user_idx)
 	appOnlineServices()->removeClientFromCoach(0, userId(user_idx));
 }
 
-QString DBUserModel::formatFieldToExport(const uint field, const QString &fieldValue) const
+QString UsersManager::formatFieldToExport(const uint field, const QString &fieldValue) const
 {
 	switch (field) {
-	case USER_FIELD_BIRTHDAY:
+	case BIRTHDAY:
 		return appUtils()->formatDate(QDate::fromJulianDay(fieldValue.toInt()));
-	case USER_FIELD_SEX:
+	case SEX:
 		return fieldValue == '0' ? std::move(tr("Male")) : std::move(tr("Female"));
-	case USER_FIELD_SOCIALMEDIA:
+	case SOCIALMEDIA:
 		{
 		QString strSocial{fieldValue};
 		return strSocial.replace(record_separator, fancy_record_separator1);
 		}
-	case USER_FIELD_USER_CATEGORY:
+	case CATEGORY:
 		switch (fieldValue.at(0).toLatin1()) {
 		case '1': return tr("User");
 		case '2': return tr("Coach");
@@ -1504,18 +1514,18 @@ QString DBUserModel::formatFieldToExport(const uint field, const QString &fieldV
 	}
 }
 
-QString DBUserModel::formatFieldToImport(const uint field, const QString &fieldValue) const
+QString UsersManager::formatFieldToImport(const uint field, const QString &fieldValue) const
 {
 	switch (field) {
-	case USER_FIELD_BIRTHDAY:
+	case BIRTHDAY:
 		return QString::number(appUtils()->dateFromString(fieldValue).toJulianDay());
-	case USER_FIELD_SEX:
+	case SEX:
 		return fieldValue == tr("Male") ? "0"_L1 : "1"_L1;
-	case USER_FIELD_SOCIALMEDIA: {
+	case SOCIALMEDIA: {
 		QString strSocial{fieldValue};
 		return strSocial.replace(fancy_record_separator1, record_separator);
 	}
-	case USER_FIELD_USER_CATEGORY:
+	case CATEGORY:
 		if (fieldValue == tr("User"))
 			return "1"_L1;
 		else if (fieldValue == tr("Coach"))

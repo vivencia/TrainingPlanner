@@ -4,13 +4,13 @@ import QtQuick
 import QtQuick.Layouts
 
 import TpQml
+import TpQml.Dialogs
 import TpQml.Widgets
 
 TPPopup {
 	id: dlgCoachRequest
 	keepAbove: true
 	showTitleBar: true
-	closeButtonVisible: true
 	open_in_window: true
 	width: AppSettings.pageWidth - 20
 	height: AppSettings.pageHeight * 0.4
@@ -61,7 +61,7 @@ TPPopup {
 			Layout.fillWidth: true
 			Layout.fillHeight: true
 
-			onButtonClicked: AppUserModel.sendRequestToCoaches();
+			onButtonClicked: AppUserModel.sendRequestToCoaches(model);
 			onItemButtonClicked: (userIdx) => viewResume(userIdx);
 
 			Loader {

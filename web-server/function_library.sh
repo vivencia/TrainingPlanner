@@ -19,12 +19,16 @@ ENABLE_DEBUG=0
 export ENABLE_DEBUG
 LOG_FILE=""
 export LOG_FILE
+QUIET=1
+export QUIET
 
 print() {
 	if [ $ENABLE_DEBUG -eq 1 ]; then
 		echo -e "${@}" | tee -a "$LOG_FILE"
 	else
-		echo -e "${@}"
+		if [ $QUIET -eq 1 ]; then
+			echo -e "${@}"
+		fi
 	fi
 }
 

@@ -1,6 +1,6 @@
 #include "osinterface.h"
 
-#include "dbusermodel.h"
+#include "usersmanager.h"
 #include "qmlitemmanager.h"
 #include "return_codes.h"
 #include "tpsettings.h"

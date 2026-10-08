@@ -4,7 +4,7 @@
 #include "tpmessage.h"
 #include "tponlineservices.h"
 #include "websocketserver.h"
-#include "../dbusermodel.h"
+#include "../usersmanager.h"
 #include "../pageslistmodel.h"
 #include "../qmlitemmanager.h"
 #include "../return_codes.h"
@@ -39,7 +39,7 @@ TPMessagesManager::TPMessagesManager(QObject *parent)
 
 void TPMessagesManager::startMessagesPolling(const QString &userid)
 {
-	connect(appUserModel(), &DBUserModel::canConnectToServerChanged, this, [this] () {
+	connect(appUserModel(), &UsersManager::canConnectToServerChanged, this, [this] () {
 		if (!appUserModel()->canConnectToServer())
 			m_checkMessagesTimer->stop();
 		else
@@ -317,7 +317,7 @@ TPMessage *TPMessagesManager::topLevelUserMessage(const QString &userid)
 {
 	TPMessage *top_level_msg{m_messagesModel->findMessage(TPMessage::FIELD_USERID, userid, TPMessage::MT_TOPLEVEL)};
 	if (!top_level_msg) {
-		const int useridx{appUserModel()->userIdxFromFieldValue(DBUserModel::USER_FIELD_ID, userid)};
+		const int useridx{appUserModel()->userIdxFromFieldValue(UsersManager::ID, userid)};
 		top_level_msg = new TPMessage{m_messagesModel->rootMessage()};
 		top_level_msg->setUserId(userid);
 		//top_level_msg->setObjectName("Top level for user " + userid);
@@ -325,12 +325,12 @@ TPMessage *TPMessagesManager::topLevelUserMessage(const QString &userid)
 		top_level_msg->setTitle(std::move(useridx != -1 ? appUserModel()->userName(useridx) : tr("Unknown contact")));
 		top_level_msg->setIcon(std::move(useridx != -1 ? appUserModel()->avatar(useridx) : "unknown-user"));
 		if (userid != tpsystem_userid) {
-			connect(appUserModel(), &DBUserModel::userModified, this, [this,useridx,top_level_msg]
+			connect(appUserModel(), &UsersManager::userModified, this, [this,useridx,top_level_msg]
 																(const uint user_idx, const uint field) {
 				if (user_idx == useridx) {
-					if (field == DBUserModel::USER_FIELD_AVATAR)
+					if (field == UsersManager::AVATAR)
 						top_level_msg->setIcon(appUserModel()->avatar(useridx));
-					else if (field == DBUserModel::USER_FIELD_NAME)
+					else if (field == UsersManager::NAME)
 						top_level_msg->setTitle(appUserModel()->userName(useridx));
 				}
 			});

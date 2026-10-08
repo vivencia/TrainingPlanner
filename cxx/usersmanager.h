@@ -18,7 +18,7 @@ QT_FORWARD_DECLARE_CLASS(TPFilePath)
 QT_FORWARD_DECLARE_CLASS(QQuickItem)
 QT_FORWARD_DECLARE_CLASS(QTimer)
 
-class DBUserModel : public QObject
+class UsersManager : public QObject
 {
 
 Q_OBJECT
@@ -44,7 +44,6 @@ Q_PROPERTY(QString invalidEmailLabel READ invalidEmailLabel NOTIFY labelsChanged
 Q_PROPERTY(QString invalidPasswordLabel READ invalidPasswordLabel NOTIFY labelsChanged FINAL)
 Q_PROPERTY(QString checkEmailLabel READ checkEmailLabel NOTIFY labelsChanged FINAL)
 Q_PROPERTY(QString importUserLabel READ importUserLabel NOTIFY labelsChanged FINAL)
-Q_PROPERTY(UserInfoListModel *allUsersList READ allUsersList NOTIFY allUsersListChanged FINAL)
 Q_PROPERTY(bool onlineAccount READ onlineAccount WRITE setOnlineAccount NOTIFY onlineUserChanged FINAL)
 Q_PROPERTY(bool mainUserConfigured READ mainUserConfigured NOTIFY mainUserConfigurationFinished FINAL)
 Q_PROPERTY(bool mainUserIsCoach READ mainUserIsCoach NOTIFY mainUserConfigurationFinished FINAL)
@@ -52,26 +51,27 @@ Q_PROPERTY(bool mainUserIsClient READ mainUserIsClient NOTIFY mainUserConfigurat
 Q_PROPERTY(bool canConnectToServer READ canConnectToServer WRITE setCanConnectToServer NOTIFY canConnectToServerChanged FINAL)
 
 #ifndef Q_OS_ANDROID
-Q_PROPERTY(UserInfoListModel *allUsers READ allUsers NOTIFY allUsersChanged FINAL)
+Q_PROPERTY(UserInfoListModel *localUsers READ localUsers NOTIFY localUsersChanged FINAL)
+Q_PROPERTY(UserInfoListModel *onlineUsers READ onlineUsers NOTIFY onlineUsersChanged FINAL)
 #endif
 
 public:
 	enum userFields {
-		USER_FIELD_ID,
-		USER_FIELD_INSERTTIME,
-		USER_FIELD_ONLINEACCOUNT,
-		USER_FIELD_NAME,
-		USER_FIELD_BIRTHDAY,
-		USER_FIELD_SEX,
-		USER_FIELD_PHONE,
-		USER_FIELD_EMAIL,
-		USER_FIELD_SOCIALMEDIA,
-		USER_FIELD_USERROLE,
-		USER_FIELD_COACHROLE,
-		USER_FIELD_GOAL,
-		USER_FIELD_USER_CATEGORY,
+		ID,
+		INSERTTIME,
+		ONLINEACCOUNT,
+		NAME,
+		BIRTHDAY,
+		SEX,
+		PHONE,
+		EMAIL,
+		SOCIALMEDIA,
+		USERROLE,
+		COACHROLE,
+		GOAL,
+		CATEGORY,
 		USER_N_FIELDS,
-		USER_FIELD_AVATAR,
+		AVATAR,
 	};
 	Q_ENUM(userFields)
 
@@ -85,8 +85,8 @@ public:
 	};
 	Q_ENUM(st_userCategory)
 
-	Q_DISABLE_COPY_MOVE(DBUserModel)
-	explicit DBUserModel(QObject *parent = nullptr, const bool bMainUserModel = true);
+	Q_DISABLE_COPY_MOVE(UsersManager)
+	explicit UsersManager(QObject *parent = nullptr, const bool bMainUserModel = true);
 
 	inline QString idLabel() const { return "Id: "_L1; }
 	inline QString onlineAccountUserLabel() const { return tr("Create online account: "); }
@@ -120,7 +120,7 @@ public:
 	inline uint userCount() const { return m_usersData.count(); }
 	inline const QString _onlineAccount(const uint user_idx) const
 	{
-		return user_idx < m_usersData.count() ? m_usersData.at(user_idx).at(USER_FIELD_ONLINEACCOUNT) : "0"_L1;
+		return user_idx < m_usersData.count() ? m_usersData.at(user_idx).at(ONLINEACCOUNT) : "0"_L1;
 	}
 	inline bool onlineAccount(const uint user_idx = 0) const { return _onlineAccount(user_idx).at(0) == '1'; }
 	void setOnlineAccount(const bool online_user, const uint user_idx = 0);
@@ -142,23 +142,23 @@ public:
 
 	Q_INVOKABLE inline int findUserById(const QString &userid, const bool exact_match = true) const
 	{
-		return userIdxFromFieldValue(USER_FIELD_NAME, userid, exact_match);
+		return userIdxFromFieldValue(NAME, userid, exact_match);
 	}
-	Q_INVOKABLE inline QString userNameFromId(const QString &userid) const { return userName(userIdxFromFieldValue(USER_FIELD_ID, userid)); }
+	Q_INVOKABLE inline QString userNameFromId(const QString &userid) const { return userName(userIdxFromFieldValue(ID, userid)); }
 	int userIdxFromFieldValue(const uint field, const QString &value, const bool exact_match = true) const;
 	const QString &userIdFromFieldValue(const uint field, const QString &value) const;
 
-	inline const QString &userId(const int user_idx = 0) const { return m_usersData.at(user_idx).at(USER_FIELD_ID); }
+	inline const QString &userId(const int user_idx = 0) const { return m_usersData.at(user_idx).at(ID); }
 	Q_INVOKABLE inline QString userId_QML(const int row) const { return row >= 0 && row < m_usersData.count() ? userId(row) : QString{}; }
-	inline void setUserId(const uint user_idx, const QString &new_id) { m_usersData[user_idx][USER_FIELD_ID] = new_id; }
+	inline void setUserId(const uint user_idx, const QString &new_id) { m_usersData[user_idx][ID] = new_id; }
 
 	Q_INVOKABLE inline QString userName(const int user_idx) const { return user_idx >= 0 && user_idx < m_usersData.count() ? _userName(user_idx) : QString{}; }
-	inline const QString &_userName(const uint user_idx) const { return m_usersData.at(user_idx).at(USER_FIELD_NAME); }
+	inline const QString &_userName(const uint user_idx) const { return m_usersData.at(user_idx).at(NAME); }
 	Q_INVOKABLE inline void setUserName(const int user_idx, const QString &new_name)
 	{
 		if (new_name != _userName(user_idx)) {
-			m_usersData[user_idx][USER_FIELD_NAME] = new_name;
-			emit userModified(user_idx, USER_FIELD_NAME);
+			m_usersData[user_idx][NAME] = new_name;
+			emit userModified(user_idx, NAME);
 		}
 	}
 
@@ -170,23 +170,23 @@ public:
 	}
 	Q_INVOKABLE inline int birthYear(const int user_idx) const { return birthDate(user_idx).year(); }
 	Q_INVOKABLE inline QString birthDateFancy(const int user_idx) const { return appUtils()->formatDate(birthDate(user_idx)); }
-	inline const QString &_birthDate(const uint user_idx) const { return m_usersData.at(user_idx).at(USER_FIELD_BIRTHDAY); }
+	inline const QString &_birthDate(const uint user_idx) const { return m_usersData.at(user_idx).at(BIRTHDAY); }
 	Q_INVOKABLE inline void setBirthDate(const uint user_idx, const QDate& new_date)
 	{
 		if (new_date != birthDate(user_idx)) {
-			m_usersData[user_idx][USER_FIELD_BIRTHDAY] = std::move(QString::number(new_date.toJulianDay()));
-			emit userModified(user_idx, USER_FIELD_BIRTHDAY);
+			m_usersData[user_idx][BIRTHDAY] = std::move(QString::number(new_date.toJulianDay()));
+			emit userModified(user_idx, BIRTHDAY);
 		}
 	}
 
 	Q_INVOKABLE inline QChar sex(const int user_idx) const { return user_idx >= 0 && user_idx < m_usersData.count() ? _sex(user_idx).at(0) : 'N'; }
-	inline const QString &_sex(const uint user_idx) const { return m_usersData.at(user_idx).at(USER_FIELD_SEX); }
+	inline const QString &_sex(const uint user_idx) const { return m_usersData.at(user_idx).at(SEX); }
 	Q_INVOKABLE void setSex(const int user_idx, const bool male)
 	{
 		if (sex(user_idx) != (male ? 'M' : 'F')) {
-			m_usersData[user_idx][USER_FIELD_SEX] = male ? 'M' : 'F';
+			m_usersData[user_idx][SEX] = male ? 'M' : 'F';
 			setAvatar(user_idx, (male ? "image://tpimageprovider/m0"_L1 : "image://tpimageprovider/f1"_L1));
-			emit userModified(user_idx, USER_FIELD_SEX);
+			emit userModified(user_idx, SEX);
 		}
 	}
 
@@ -199,20 +199,20 @@ public:
 		return user_idx < m_usersData.count() ? getPhonePart(_phone(user_idx), false) : QString{};
 	}
 
-	inline const QString &_phone(const uint user_idx) const { return m_usersData.at(user_idx).at(USER_FIELD_PHONE); }
+	inline const QString &_phone(const uint user_idx) const { return m_usersData.at(user_idx).at(PHONE); }
 	Q_INVOKABLE void setPhone(const int user_idx, QString new_phone_prefix, const QString &new_phone);
 	inline void setPhone(const uint user_idx, QString &&new_phone)
 	{
-		m_usersData[user_idx][USER_FIELD_PHONE] = std::forward<QString>(new_phone);
-		emit userModified(user_idx, USER_FIELD_PHONE);
+		m_usersData[user_idx][PHONE] = std::forward<QString>(new_phone);
+		emit userModified(user_idx, PHONE);
 	}
 
 	Q_INVOKABLE inline QString email(const int user_idx) const { return user_idx >= 0 && user_idx < m_usersData.count() ? _email(user_idx) : m_emptyString; }
-	inline const QString &_email(const uint user_idx) const { return m_usersData.at(user_idx).at(USER_FIELD_EMAIL); }
+	inline const QString &_email(const uint user_idx) const { return m_usersData.at(user_idx).at(EMAIL); }
 	Q_INVOKABLE inline void setEmail(const int user_idx, const QString &new_email)
 	{
-		m_usersData[user_idx][USER_FIELD_EMAIL] = new_email;
-		emit userModified(user_idx, USER_FIELD_EMAIL);
+		m_usersData[user_idx][EMAIL] = new_email;
+		emit userModified(user_idx, EMAIL);
 	}
 
 	Q_INVOKABLE inline QString socialMedia(const int user_idx, const int index) const
@@ -221,51 +221,50 @@ public:
 			appUtils()->getCompositeValue(index, _socialMedia(user_idx), record_separator) :
 			QString{};
 	}
-	inline const QString &_socialMedia(const uint user_idx) const { return m_usersData.at(user_idx).at(USER_FIELD_SOCIALMEDIA); }
+	inline const QString &_socialMedia(const uint user_idx) const { return m_usersData.at(user_idx).at(SOCIALMEDIA); }
 	Q_INVOKABLE inline void setSocialMedia(const int user_idx, const uint index, const QString &new_social)
 	{
-		appUtils()->setCompositeValue(index, new_social, m_usersData[user_idx][USER_FIELD_SOCIALMEDIA], record_separator);
-		emit userModified(user_idx, USER_FIELD_SOCIALMEDIA);
+		appUtils()->setCompositeValue(index, new_social, m_usersData[user_idx][SOCIALMEDIA], record_separator);
+		emit userModified(user_idx, SOCIALMEDIA);
 	}
 	inline void setSocialMedia(const int user_idx, QString &&new_social)
 	{
-		m_usersData[user_idx][USER_FIELD_SOCIALMEDIA] = std::forward<QString>(new_social);
-		emit userModified(user_idx, USER_FIELD_SOCIALMEDIA);
+		m_usersData[user_idx][SOCIALMEDIA] = std::forward<QString>(new_social);
+		emit userModified(user_idx, SOCIALMEDIA);
 	}
 
 	Q_INVOKABLE inline QString userRole(const int user_idx) const { return user_idx >= 0 && user_idx < m_usersData.count() ? _userRole(user_idx) : m_emptyString; }
-	inline const QString &_userRole(const uint user_idx) const { return m_usersData.at(user_idx).at(USER_FIELD_USERROLE); }
+	inline const QString &_userRole(const uint user_idx) const { return m_usersData.at(user_idx).at(USERROLE); }
 	Q_INVOKABLE inline void setUserRole(const int user_idx, const QString &new_role)
 	{
-		m_usersData[user_idx][USER_FIELD_USERROLE] = new_role;
-		emit userModified(user_idx, USER_FIELD_USERROLE);
+		m_usersData[user_idx][USERROLE] = new_role;
+		emit userModified(user_idx, USERROLE);
 	}
 
 	Q_INVOKABLE inline QString coachRole(const int user_idx) const { return user_idx >= 0 && user_idx < m_usersData.count() ? _coachRole(user_idx) : m_emptyString; }
-	inline const QString &_coachRole(const uint user_idx) const { return m_usersData.at(user_idx).at(USER_FIELD_COACHROLE); }
+	inline const QString &_coachRole(const uint user_idx) const { return m_usersData.at(user_idx).at(COACHROLE); }
 	Q_INVOKABLE inline void setCoachRole(const int user_idx, const QString &new_role)
 	{
-		m_usersData[user_idx][USER_FIELD_COACHROLE] = new_role;
-		emit userModified(user_idx, USER_FIELD_COACHROLE);
+		m_usersData[user_idx][COACHROLE] = new_role;
+		emit userModified(user_idx, COACHROLE);
 	}
 
 	Q_INVOKABLE inline QString goal(const int user_idx) const { return user_idx >= 0 && user_idx < m_usersData.count() ? _goal(user_idx) : QString{}; }
-	inline const QString &_goal(const uint user_idx) const { return m_usersData.at(user_idx).at(USER_FIELD_GOAL); }
+	inline const QString &_goal(const uint user_idx) const { return m_usersData.at(user_idx).at(GOAL); }
 	Q_INVOKABLE inline void setGoal(const int user_idx, const QString &new_goal)
 	{
-		m_usersData[user_idx][USER_FIELD_GOAL] = new_goal;
-		emit userModified(user_idx, USER_FIELD_GOAL);
+		m_usersData[user_idx][GOAL] = new_goal;
+		emit userModified(user_idx, GOAL);
 	}
 
-	Q_INVOKABLE inline QString avatarFromId(const QString &userid) { return avatar(userIdxFromFieldValue(USER_FIELD_ID, userid)); }
+	Q_INVOKABLE inline QString avatarFromId(const QString &userid) { return avatar(userIdxFromFieldValue(ID, userid)); }
 	Q_INVOKABLE QString avatar(const int user_idx);
 	Q_INVOKABLE void setAvatar(const int user_idx, const QString &new_avatar, const bool saveToDisk = true, const bool upload = true);
 
 	Q_INVOKABLE inline uint userCategory(const int user_idx) const { return user_idx >= 0 && user_idx < m_usersData.count() ? _userCategory(user_idx).toUInt() : 0; }
-	inline const QString &_userCategory(const uint user_idx) const { return m_usersData.at(user_idx).at(USER_FIELD_USER_CATEGORY); }
+	inline const QString &_userCategory(const uint user_idx) const { return m_usersData.at(user_idx).at(CATEGORY); }
 	void setUserCategory(const int user_idx, const int new_category, const bool add);
 
-	inline UserInfoListModel *allUsersList() const { return m_allUsersInfo; }
 	const QString currentCoachName(const uint user_idx) const;
 	void checkCoachesReponses();
 
@@ -274,12 +273,14 @@ public:
 	{
 		return !m_mesoModels.isEmpty() ? m_mesoModels.value(userId(0)) : nullptr;
 	}
-	Q_INVOKABLE void getAllOnlineUsers();
-	Q_INVOKABLE void switchUser();
+	Q_INVOKABLE void getOnlineUsers();
+	Q_INVOKABLE void getLocalUsers();
+	Q_INVOKABLE void switchUser(UserInfoListModel *user_model);
 	Q_INVOKABLE inline void createNewUser() { userSwitchingActions(true, std::move(generateUniqueUserId())); }
-	Q_INVOKABLE void removeOtherUser();
+	Q_INVOKABLE void removeUser(UserInfoListModel *user_model);
 	void userSwitchingActions(const bool create, QString &&userid);
-	inline UserInfoListModel *allUsers() const { return m_allUsers; }
+	inline UserInfoListModel *localUsers() const { return m_localUsers; }
+	inline UserInfoListModel *onlineUsers() const { return m_onlineUsers; }
 #else
 	Q_INVOKABLE inline DBMesocyclesModel *actualMesoModel() const { return m_mesoModel; }
 #endif
@@ -351,7 +352,8 @@ signals:
 	void userIdChanged();
 
 #ifndef Q_OS_ANDROID
-	void allUsersChanged();
+	void localUsersChanged();
+	void onlineUsersChanged();
 	void userSwitchPhase1Finished(const bool success);
 #endif
 
@@ -360,7 +362,6 @@ private:
 	int n_devices{0};
 	QString m_defaultAvatar, m_emptyString, m_network_msg_title;
 	std::optional<bool> mb_userLoggedIn, mb_coachRegistered;
-	UserInfoListModel *m_allUsersInfo{nullptr};
 	bool mb_canConnectToServer{false}, mb_coachPublic{false}, mb_MainUserInfoChanged{false};
 	QTimer *m_mainTimer{nullptr};
 
@@ -369,7 +370,7 @@ private:
 
 #ifndef Q_OS_ANDROID
 	QHash<QString,DBMesocyclesModel*> m_mesoModels;
-	UserInfoListModel *m_allUsers{nullptr};
+	UserInfoListModel *m_onlineUsers{nullptr}, *m_localUsers{nullptr};
 #else
 	DBMesocDBMesocyclesModel *m_mesoModel{nullptr};
 #endif
@@ -411,15 +412,15 @@ private:
 	QString formatFieldToExport(const uint field, const QString &fieldValue) const;
 	QString formatFieldToImport(const uint field, const QString &fieldValue) const;
 
-	static DBUserModel *_appUserModel;
-	friend DBUserModel *appUserModel();
+	static UsersManager *_appUserModel;
+	friend UsersManager *appUserModel();
 	friend class UserInfoListModel;
 	friend class DBModelInterfaceUser;
 };
 
-DECLARE_QML_NAMED_SINGLETON(DBUserModel, AppUserModel)
+DECLARE_QML_NAMED_SINGLETON(UsersManager, AppUserModel)
 
-inline DBUserModel *appUserModel() { return DBUserModel::_appUserModel; }
+inline UsersManager *appUserModel() { return UsersManager::_appUserModel; }
 
 class DBModelInterfaceUser : public DBModelInterface
 {

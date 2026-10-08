@@ -1,6 +1,6 @@
 #include "tpsettings.h"
 
-#include "dbusermodel.h"
+#include "usersmanager.h"
 #include "tpfilepath.h"
 #include "tputils.h"
 #include "online_services/tponlineservices.h"

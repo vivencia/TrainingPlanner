@@ -27,7 +27,6 @@ set(QT_QML_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}" CACHE PATH "Install path for Q
 set(QML_IMPORT_PATH "${CMAKE_BINARY_DIR}/qml" CACHE STRING "Import paths for Qt Creator" FORCE)
 
 if (ANDROID)
-
 	find_package(
 		Qt6 6.10 REQUIRED COMPONENTS
 		Charts
@@ -45,10 +44,6 @@ if (ANDROID)
 		Sql
 		WebSockets
 		Widgets
-	)
-
-	add_compile_definitions(
-		REQUEST_PERMISSIONS_ON_ANDROID
 	)
 
 else()
@@ -80,10 +75,6 @@ find_package(
 add_compile_options(
 	-std=c++20
 	${CMAKE_CXX_FLAGS_INIT}
-)
-
-add_definitions(
-	-DLOCAL_TPSERVER=1
 )
 
 qt_standard_project_setup(
@@ -122,7 +113,7 @@ set( CXX_SOURCES_QML_INTEGRATION
 		cxx/homepagemesomodel.h cxx/homepagemesomodel.cpp
 		cxx/dbexercisesmodel.h cxx/dbexercisesmodel.cpp
 		cxx/dbcalendarmodel.h cxx/dbcalendarmodel.cpp
-		cxx/dbusermodel.h cxx/dbusermodel.cpp
+		cxx/usersmanager.h cxx/usersmanager.cpp
 		cxx/pageslistmodel.h cxx/pageslistmodel.cpp
 		cxx/tpfiltermodel.h cxx/tpfiltermodel.cpp
 		cxx/tplistmodel.h cxx/tplistmodel.cpp
@@ -204,6 +195,7 @@ qt_add_translations(TrainingPlanner
 )
 
 set( SERVER_FILES
+		build_info.sh
 		web-server/function_library.sh
 		web-server/init_script.sh
 		web-server/nginx.conf
@@ -378,3 +370,37 @@ if (ANDROID)
 	#	QT_ANDROID_COMPILE_SDK_VERSION 32
 	#)
 endif(ANDROID)
+
+execute_process(
+	COMMAND ping -w 1 179.75.74.1
+	RESULT_VARIABLE INTERNET_SERVER_EXIT_CODE
+)
+if(NOT INTERNET_SERVER_CODE EQUAL 0)
+	execute_process(
+		COMMAND /var/www/html/trainingplanner/scripts/init_script.sh -q -m
+		RESULT_VARIABLE EXIT_CODE
+	)
+	if(EXIT_CODE EQUAL 0)
+		target_compile_definitions(TrainingPlanner PRIVATE LOCAL_TPSERVER=1)
+		if(NOT ANDROID)
+			target_compile_definitions(TrainingPlanner PRIVATE TPSERVER_MACHINE=1)
+		endif()
+	endif(EXIT_CODE EQUAL 0)
+
+endif(NOT INTERNET_SERVER_CODE EQUAL 0)
+
+add_custom_command(
+    TARGET TrainingPlanner
+    PRE_BUILD
+    COMMENT "Running pre-build script..."
+    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/build_info.sh"
+    OUTPUT_VARIABLE COMPILATION_INFO
+	OUTPUT_STRIP_TRAILING_WHITESPACE
+	RESULT_VARIABLE EXIT_CODE
+    if(EXIT_CODE EQUAL 0)
+		target_compile_definitions(TrainingPlanner PRIVATE TP_APP_VERSION=${COMPILATION_INFO})
+	else()
+		message(STATUS "Failed to acquire compilation info")
+	endif(EXIT_CODE EQUAL 0)
+    VERBATIM
+)

@@ -3,7 +3,7 @@
 #include "tpchatdb.h"
 #include "tponlineservices.h"
 #include "websocketserver.h"
-#include "../dbusermodel.h"
+#include "../usersmanager.h"
 #include "../pageslistmodel.h"
 #include "../tpfilepath.h"
 #include "../tpfileops.h"
@@ -104,7 +104,7 @@ TPChat::TPChat(const QString &otheruser_id, const bool check_unread_messages, QO
 	roleToString(ownMessage)
 	roleToString(mediaViewer)
 
-	m_userIdx = appUserModel()->userIdxFromFieldValue(DBUserModel::USER_FIELD_ID, m_otherUserId);
+	m_userIdx = appUserModel()->userIdxFromFieldValue(UsersManager::ID, m_otherUserId);
 	m_dbModelInterface = new DBModelInterfaceChat{this};
 	m_db = new TPChatDB{this};
 	appThreadManager()->runAction(m_db, ThreadManager::CreateTable);
@@ -119,19 +119,19 @@ TPChat::TPChat(const QString &otheruser_id, const bool check_unread_messages, QO
 					removeMessage(workDataFieldValue(work_data, WDF_MSGID).toInt(), false); });
 	m_workFuncs.insert(CW_EDITED, [this] (const QString &work_data) -> void { editMessage(work_data); });
 
-	connect(appUserModel(), &DBUserModel::userModified, this, [this] (const uint user_idx, const uint field) {
+	connect(appUserModel(), &UsersManager::userModified, this, [this] (const uint user_idx, const uint field) {
 		if (user_idx == m_userIdx) {
 			switch (field) {
-			case DBUserModel::USER_FIELD_NAME: emit interlocutorNameChanged(); break;
-			case DBUserModel::USER_FIELD_AVATAR: emit avatarIconChanged(); break;
+			case UsersManager::NAME: emit interlocutorNameChanged(); break;
+			case UsersManager::AVATAR: emit avatarIconChanged(); break;
 			case USER_MODIFIED_REMOVED: m_userIdx = -1; break; //TODO interlocutor removed
 			}
 		}
 		else if (user_idx < m_userIdx && field == USER_MODIFIED_REMOVED) //just update member to the new user idx
-			m_userIdx = appUserModel()->userIdxFromFieldValue(DBUserModel::USER_FIELD_ID, m_otherUserId);
+			m_userIdx = appUserModel()->userIdxFromFieldValue(UsersManager::ID, m_otherUserId);
 	});
 
-	connect(appUserModel(), &DBUserModel::canConnectToServerChanged, this, [this] () {
+	connect(appUserModel(), &UsersManager::canConnectToServerChanged, this, [this] () {
 		if (appUserModel()->canConnectToServer()) {
 			for (const auto msg : std::as_const(m_messages)) {
 				if (!msg->queued.isEmpty())

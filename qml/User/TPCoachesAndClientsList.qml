@@ -23,7 +23,6 @@ Rectangle {
 	property alias model: workingModel
 	property alias anySelected: workingModel.anySelected
 	property alias currentRow: workingModel.currentRow
-	property alias selectedUserIdx: workingModel.currentUserIdx
 	property alias count: workingModel.count
 
 	signal itemSelected(int userIdx)
@@ -93,9 +92,8 @@ Rectangle {
 
 	TPListView {
 		id: listView
-		currentIndex: workingModel.currentRow
+		listModel: workingModel
 		height: button.visible ? _control.height - button.height - 5 : _control.height
-		model: workingModel
 		enabled: _control.enabled
 		visible: workingModel.count > 0
 
@@ -182,7 +180,7 @@ Rectangle {
 	}
 
 	function applyFilter(filter: string): void {
-		workingModel.applyFilter(filter, AppUserModel.USER_FIELD_NAME);
+		workingModel.applyFilter(filter, AppUserModel.NAME);
 	}
 
 	function selectedUsers(): list<string> {

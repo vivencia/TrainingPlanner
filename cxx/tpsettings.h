@@ -7,10 +7,13 @@
 
 QT_FORWARD_DECLARE_CLASS(TPFilePath)
 
+#ifndef TP_APP_VERSION
+#define TP_APP_VERSION "Verify Build"
+#endif
+
 //--------------------------------------------GLOBAL SETTINGS---------------------------------------------//
 using namespace Qt::Literals::StringLiterals;
 
-constexpr QLatin1StringView TP_APP_VERSION{"v20260224 Build 1"};
 constexpr QLatin1StringView GLOBAL_GROUP{"app"};
 constexpr QLatin1StringView DEFAULT_USER{"default"};
 

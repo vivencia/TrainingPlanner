@@ -26,7 +26,7 @@ ColumnLayout {
 		target: AppUserModel
 		function onUserModified(row: int, field: int): void {
 			if (row === profileModule.userIdx) {
-				if (field === AppUserModel.USER_FIELD_AVATAR)
+				if (field === AppUserModel.AVATAR)
 					imgAvatar.source = AppUserModel.avatar(profileModule.userIdx, false);
 				else
 					profileModule.getUserInfo();
