@@ -27,8 +27,10 @@ Q_PROPERTY(bool selectEntireRow READ selectEntireRow WRITE setSelectEntireRow NO
 Q_PROPERTY(bool anySelected READ anySelected NOTIFY selectedChanged FINAL)
 Q_PROPERTY(bool allSelected READ allSelected NOTIFY selectedChanged FINAL)
 Q_PROPERTY(bool noneSelected READ noneSelected NOTIFY selectedChanged FINAL)
+Q_PROPERTY(bool askBeforeRemove READ askBeforeRemove WRITE setAskBeforeRemove NOTIFY askBeforeRemoveChanged FINAL)
 Q_PROPERTY(QStringList fieldsNames READ fieldsNames NOTIFY fieldsNamesChanged FINAL)
 Q_PROPERTY(TPFilterModel filters READ filters NOTIFY filtersChanged FINAL)
+Q_PROPERTY(QQuickItem* parentPage READ parentPage WRITE setParentPage NOTIFY parentPageChanged FINAL)
 
 public:
 	enum SortDirection {
@@ -44,7 +46,12 @@ public:
 	inline uint count() const { return m_rowsMetadata.count(); }
 	inline uint colCount() const { return m_totalCols; }
 
+	Q_INVOKABLE inline bool itemIsVisible(const int index) const { return visible(index); }
 	int realRow(const int visible_row) const;
+	inline int visibleRow(const int real_row) const
+	{
+		return real_row >= 0 && real_row < m_rowsMetadata.count() ? m_rowsMetadata.at(real_row).virt_index : 1;
+	}
 	inline int currentRow() const { return m_currentRow; }
 	inline void setCurrentRow(const int new_row)
 	{
@@ -52,6 +59,11 @@ public:
 			m_currentRow = new_row;
 			emit currentRowChanged();
 		}
+	}
+	inline void setCurrentRowViaRealRow(const int real_row)
+	{
+		if (visible(real_row))
+			setCurrentRow(m_rowsMetadata.at(real_row).virt_index);
 	}
 	inline const QString &currentValue(const uint column) const { return dataValue(m_currentRow, column); }
 
@@ -169,7 +181,11 @@ public:
 	 * @brief setParentPage
 	 * Absolutely needed when removal of items is required
 	 */
-	Q_INVOKABLE void setParentPage(QQuickItem *parent_page) { m_parentPage = parent_page; }
+	inline QQuickItem *parentPage() const { return m_parentPage; }
+	inline void setParentPage(QQuickItem *page) { m_parentPage = page; emit parentPageChanged(); }
+
+	bool askBeforeRemove() const;
+	inline void setAskBeforeRemove(const bool remove) { m_askBeforeRemove = remove; emit askBeforeRemoveChanged(); }
 	Q_INVOKABLE inline void removeCurrent() { removeItem(m_currentRow); }
 	Q_INVOKABLE inline void removeItem(const int visible_row) {
 		const auto real_row{realRow(visible_row)};
@@ -183,6 +199,21 @@ public:
 	Q_INVOKABLE inline void removeSelected() { m_rowsToRemove = std::move(selectedInfo()); remove(true); }
 
 	/**
+	 * @brief syncMetadata
+	 * Call after m_modelData is filled with data from batch operations(e.g. after a Database read).
+	 */
+	void syncMetadata(const uint modeldata_count, const bool do_qml_signals = true);
+
+	/**
+	 * @brief insertMetaData/removeMetaData
+	 * Automatically called after a row insertion/deletion as long as beginInsertRows()/beginRemoveRows() is used
+	 * Can also be called independently
+	 * @param row = real row/index
+	 */
+	void insertMetaData(const int row);
+	void removeMetaData(const int row);
+
+	/**
 	 * @brief dataValue
 	 * Reimplement when the container for the model data is not the default m_modelData
 	 * @return
@@ -190,6 +221,12 @@ public:
 	virtual inline const QString &dataValue(const uint real_row, const uint column) const
 	{
 		return m_modelData.at(real_row).at(column);
+	}
+	Q_INVOKABLE inline QString get(const int index, const int field) const
+	{
+		if (index >= 0 && index < m_rowsMetadata.count() && field >= 0 && field < m_totalCols)
+			return dataValue(index, field);
+		return QString{};
 	}
 
 	inline int rowCount(const QModelIndex & = QModelIndex{}) const override final { return count(); }
@@ -208,15 +245,12 @@ public slots:
 	 * @see sort() and search()
 	 */
 	void applyFilters(const bool do_layout_signals = true);
-	inline void removeDialogClosed(int close_action_type)
-	{
-		if (close_action_type == 0)
-			remove(false);
-	}
 
 signals:
 	void selectEntireRowChanged();
 	void countChanged();
+	void parentPageChanged();
+	void askBeforeRemoveChanged();
 	void filterFieldChanged();
 	void enableFiltersChanged();
 	void sortFieldChanged();
@@ -229,6 +263,7 @@ signals:
 	void sortChanged();
 	void itemAdded(const int index);
 	void itemRemoved(const int index);
+	void cancelRemove(const int index);
 
 protected:
 	/** Derived classes *must* implement this function and "can not" implement data(const QModelIndex &index, int role)
@@ -247,20 +282,6 @@ protected:
 		return false;
 	}
 
-	/**
-	 * @brief syncMetadata
-	 * Call after m_modelData is filled with data from batch operations(e.g. after a Database read).
-	 */
-	void syncMetadata(const uint modeldata_count, const bool do_layout_signals = true);
-
-	/**
-	 * @brief insertMetaData/removeMetaData
-	 * Automatically called after a row insertion/deletion as long as beginInsertRows()/beginRemoveRows() is used
-	 * Can also be called independently
-	 * @param row = real row/index
-	 */
-	void insertMetaData(int row);
-	void removeMetaData(const int row);
 	inline TPFilterModel *filtersManager() const { return m_filters; }
 	void setFiltersManager(TPFilterModel *filter_model, const bool use_default = false);
 
@@ -283,21 +304,24 @@ private:
 	uint m_nSelected{0}, m_totalCols{1}, m_nVisibleRows{0};
 	int m_currentRow{-1};
 	bool m_selectEntireRow{true}, m_enableFilters{false};
+	std::optional<bool> m_askBeforeRemove{std::nullopt};
 	SortDirection m_sortDirection{NO_SORT};
 	TPFilterModel *m_filters{nullptr};
 	QQmlComponent *m_filtersDialogComponent{nullptr};
 	QObject *m_filtersDialog{nullptr};
 	QQuickItem *m_parentPage{nullptr};
 
-	void remove(const bool from_qml);
+	void remove(const bool from_qml, const bool bypass_confirmation = false);
 	void fixVirtualIndices();
 	void insertSort(const uint row);
-	const bool visible(const int row, const uint column = 0) const;
-	void setVisible(const uint row, bool visible, const uint column = 0, const bool emit_signals = true);
+	const bool visible(const int row, const int column = -1) const;
+	void setVisible(const uint row, bool visible, const int column = -1, const bool emit_signals = true);
 	bool selected(const int row, const uint visible_column = 0) const;
 	void setSelected(const int row, const bool selected, const uint visible_column = 0);
 	bool itemShouldBeVisible(const uint real_row) const;
 	bool itemShouldRemainVisible(const uint real_row, const QStringList &search_terms) const;
-	void fromLastState(const uint real_row);
-	void toLastState(const uint real_row, const bool add_new_state);
+	void restoreState(const uint real_row, const int index);
+	void saveState(const uint real_row, const bool add_new_state);
+	void syncNewItemStates(const uint real_row, const bool laststate_visible);
+	void alterStates(const uint new_item_row, uint state_index);
 };

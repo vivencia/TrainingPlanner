@@ -1,6 +1,7 @@
 #include "tpsettings.h"
 
 #include "usersmanager.h"
+#include "version.h"
 #include "tpfilepath.h"
 #include "tputils.h"
 #include "online_services/tponlineservices.h"
@@ -101,6 +102,16 @@ void TPSettings::setReadOnlyGroup(const QString &group, const bool read_only)
 }
 #endif
 #endif
+
+QString TPSettings::appVersion() const
+{
+	return getValue(GLOBAL_GROUP, APP_VERSION_INDEX, QString{"%1-%2"}.arg(TP_APP_VERSION, TP_APP_BUILD)).toString();
+}
+
+QString TPSettings::appVersionFancy() const
+{
+	return "TrainingPlanner by VivenciaSoftware<br>Version %1<br>build %2"_L1.arg(TP_APP_VERSION, TP_APP_BUILD);
+}
 
 void TPSettings::getScreenMeasures()
 {

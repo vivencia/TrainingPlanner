@@ -622,8 +622,8 @@ void QmlItemManager::showRemoveDialog(const int requestid, QQuickItem *parent_pa
 																			const QString &title, const QString &message)
 {
 	if (!m_removeDialogComponent) {
-		m_removeDialogComponent = new QQmlComponent{appQmlEngine(), "TpQml.Dialogs"_L1, "ModelFiltersDialog"_L1, QQmlComponent::Asynchronous};
-		connect(m_removeDialogComponent, &QQmlComponent::statusChanged, this, [&,this] (QQmlComponent::Status status) {
+		m_removeDialogComponent = new QQmlComponent{appQmlEngine(), "TpQml.Dialogs"_L1, "RemoveDialog"_L1, QQmlComponent::Asynchronous};
+		connect(m_removeDialogComponent, &QQmlComponent::statusChanged, this, [=,this] (QQmlComponent::Status status) {
 			showRemoveDialog(requestid, parent_page, identifier, title, message);
 		});
 	} else {
@@ -653,17 +653,11 @@ void QmlItemManager::showRemoveDialog(const int requestid, QQuickItem *parent_pa
 				return;
 			}
 		} else {
-			const QStringList &dont_show_list{m_removeDialog->property("dontAskAgainList").toStringList()};
-			if (dont_show_list.contains(identifier)) {
-				const int close_action_type{m_removeDialog->property("closeActionList").toInt()};
-				emit removeDialogClosed(requestid, close_action_type);
-			} else {
-				m_removeDialog->setProperty("requestid", std::move(QVariant{requestid}));
-				m_removeDialog->setProperty("identifier", std::move(QVariant{identifier}));
-				m_removeDialog->setProperty("title", std::move(QVariant{title}));
-				m_removeDialog->setProperty("message", std::move(QVariant{message}));
-				appItemManager()->appPagesManager()->openPopup(m_removeDialog, parent_page);
-			}
+			m_removeDialog->setProperty("requestid", std::move(QVariant{requestid}));
+			m_removeDialog->setProperty("identifier", std::move(QVariant{identifier}));
+			m_removeDialog->setProperty("title", std::move(QVariant{title}));
+			m_removeDialog->setProperty("message", std::move(QVariant{message}));
+			appItemManager()->appPagesManager()->openPopup(m_removeDialog, parent_page);
 		}
 	}
 }
@@ -689,7 +683,8 @@ void QmlItemManager::generalMessagesPopupClosed(const int btn_id)
 void QmlItemManager::removeDialogClosed_slot(int close_action_type)
 {
 	const int requestid{m_removeDialog->property("requestid").toInt()};
-	emit removeDialogClosed(requestid, close_action_type);
+	const bool dont_ask_again{m_removeDialog->property("dontAskAgain").toBool()};
+	emit removeDialogClosed(requestid, close_action_type, dont_ask_again);
 }
 
 //Restore properties to the default

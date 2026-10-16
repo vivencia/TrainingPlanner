@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 
 import TpQml
+import TpQml.Pages
 import TpQml.Widgets
 
 Rectangle {
@@ -12,6 +13,7 @@ Rectangle {
 	radius: 8
 
 //public:
+	required property TPPage parentPage
 	property string buttonString: ""
 	property string perItemButtonString: ""
 	property bool listConfirmed: false
@@ -24,6 +26,10 @@ Rectangle {
 	property alias anySelected: workingModel.anySelected
 	property alias currentRow: workingModel.currentRow
 	property alias count: workingModel.count
+	property alias showHeader: listView.showHeader
+	property alias canSearch: listView.canSearch
+	property alias canSelectItems: listView.showHeader
+	property alias canSort: listView.canSort
 
 	signal itemSelected(int userIdx)
 	signal buttonClicked()
@@ -76,29 +82,17 @@ Rectangle {
 		}
 	}
 
-	TPTextInput {
-		id: txtFilter
-		showClearTextButton: true
-		visible: _control.showFilterInput
-		onTextChanged: listView.applyFilter(text);
-
-		anchors {
-			top: _control.top
-			left: _control.left
-			right: _control.right
-			margins: 2
-		}
-	}
-
 	TPListView {
 		id: listView
 		listModel: workingModel
+		parentPage: _control.parentPage
+		canFilter: false
 		height: button.visible ? _control.height - button.height - 5 : _control.height
 		enabled: _control.enabled
 		visible: workingModel.count > 0
 
 		anchors {
-			top: _control.showFilterInput ? txtFilter.bottom : _control.top
+			top: _control.top
 			left: _control.left
 			right: _control.right
 			margins: 2

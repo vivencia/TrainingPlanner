@@ -7,10 +7,6 @@
 
 QT_FORWARD_DECLARE_CLASS(TPFilePath)
 
-#ifndef TP_APP_VERSION
-#define TP_APP_VERSION "Verify Build"
-#endif
-
 //--------------------------------------------GLOBAL SETTINGS---------------------------------------------//
 using namespace Qt::Literals::StringLiterals;
 
@@ -69,7 +65,6 @@ Q_PROPERTY(uint windowHeight READ windowHeight CONSTANT)
 Q_PROPERTY(uint pageWidth READ pageWidth CONSTANT)
 Q_PROPERTY(uint pageHeight READ pageHeight CONSTANT)
 Q_PROPERTY(double heightToWidthRatio READ heightToWidthRatio CONSTANT)
-Q_PROPERTY(QString appVersion READ appVersion CONSTANT)
 Q_PROPERTY(QString currentUser READ currentUser WRITE setCurrentUser NOTIFY currentUserChanged FINAL)
 Q_PROPERTY(QStringList availableLanguages READ availableLanguages CONSTANT FINAL)
 //--------------------------------------------GLOBAL SETTINGS---------------------------------------------//
@@ -121,7 +116,8 @@ public:
 #endif
 #endif
 
-	inline QString appVersion() const { return getValue(GLOBAL_GROUP, APP_VERSION_INDEX, TP_APP_VERSION).toString(); }
+	QString appVersion() const;
+	Q_INVOKABLE QString appVersionFancy() const;
 	inline uint windowWidth() const { return m_windowWidth; }
 	inline uint windowHeight() const { return m_windowHeight; }
 	inline uint pageWidth() const { return m_windowWidth; }

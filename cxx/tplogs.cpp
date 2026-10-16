@@ -13,17 +13,21 @@ enum LogRoleNames {
 TPLogs::TPLogs(LogType type, const QString &category, QObject *parent)
 	: TPListModel{parent, LF_N_FIELDS}, m_type{type}, m_category{category}
 {
-	setObjectName(category);
-	setSortField(LF_MESSAGE);
-	setSortDirection(SORT_UP);
-	setFieldsNames();
-	addFilters();
-	m_removeField = LF_TIME;
 	roleToString(logOrigin)
 	roleToString(logTitle)
 	roleToString(logMessage)
 	roleToString(logTime)
 	roleToString(logTooltip)
+
+	setObjectName(category);
+	setSortField(LF_MESSAGE);
+	setSortDirection(SORT_UP);
+	setFieldsNames();
+	addFilters();
+	m_removeField = LF_TITLE;
+	connect(this, &TPListModel::itemRemoved, this, [this] (const int index){
+		m_entries.removeAt(index);
+	});
 }
 
 const QString &TPLogs::d_time(int row, const bool full_time) const
@@ -51,7 +55,6 @@ void TPLogs::appendLog(const QString &origin, QString &&title, QString &&message
 	new_entry.d_time = std::move(QDateTime::currentDateTime());
 	m_entries.append(std::move(new_entry));
 	endInsertRows();
-	emit countChanged();
 }
 
 void TPLogs::copyLog(const int entry)

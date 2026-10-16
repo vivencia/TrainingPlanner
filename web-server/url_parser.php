@@ -4,14 +4,15 @@ $rootdir="/var/www/html/trainingplanner/";
 $pause_file=$rootdir . "pause";
 $htpasswd_file=$rootdir . "admin/.passwds";
 
+include_once('tp_functions.php');
+
 if (file_exists($pause_file)) {
 	$paused = file($pause_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 	if ($paused[0] == "1") {
-		exit(get_return_code("server paused") . ": TrainingPlanner app server under maintenance!", 1);
+		echo get_return_code("server paused") . ": TrainingPlanner app server under maintenance!";
+		exit(1);
 	}
 }
-
-include_once('tp_functions.php');
 
 /* Can be used by either an ordinary user or admin.
  * Since they are all file operations, they follow the same rationale applied to a TPFilePath:

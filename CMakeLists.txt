@@ -129,11 +129,12 @@ set( CXX_SOURCES_QML_INTEGRATION
 
 set( CXX_SOURCES
 		cxx/main.cpp
-		cxx/qml_singleton.h
 		cxx/calendar_methods.h
+		cxx/property_buffer.tpp
+		cxx/qml_singleton.h
 		cxx/return_codes.h
 		cxx/tpbool.h
-		cxx/property_buffer.tpp
+		cxx/version.h
 
 		cxx/thread_manager.h cxx/thread_manager.cpp
 		cxx/tpfilepath.h cxx/tpfilepath.cpp
@@ -262,7 +263,15 @@ qt_add_qml_module(TrainingPlanner
 		"/"
 )
 
-add_dependencies(TrainingPlanner update_translations)
+add_custom_command(
+    OUTPUT BUILD_INFO
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/build_info.sh
+)
+add_custom_target(PRE_BUILD_SCRIPTS ALL DEPENDS
+    BUILD_INFO
+)
+
+add_dependencies(TrainingPlanner PRE_BUILD_SCRIPTS update_translations)
 
 target_link_libraries(TrainingPlanner PRIVATE
 	tp_widgets_module
@@ -376,31 +385,8 @@ execute_process(
 	RESULT_VARIABLE INTERNET_SERVER_EXIT_CODE
 )
 if(NOT INTERNET_SERVER_CODE EQUAL 0)
-	execute_process(
-		COMMAND /var/www/html/trainingplanner/scripts/init_script.sh -q -m
-		RESULT_VARIABLE EXIT_CODE
-	)
-	if(EXIT_CODE EQUAL 0)
-		target_compile_definitions(TrainingPlanner PRIVATE LOCAL_TPSERVER=1)
-		if(NOT ANDROID)
-			target_compile_definitions(TrainingPlanner PRIVATE TPSERVER_MACHINE=1)
-		endif()
-	endif(EXIT_CODE EQUAL 0)
-
+	target_compile_definitions(TrainingPlanner PRIVATE LOCAL_TPSERVER=1)
+	if(EXISTS "/var/www/html/trainingplanner/scripts/init_script.sh")
+		target_compile_definitions(TrainingPlanner PRIVATE TPSERVER_MACHINE=1)
+	endif()
 endif(NOT INTERNET_SERVER_CODE EQUAL 0)
-
-add_custom_command(
-    TARGET TrainingPlanner
-    PRE_BUILD
-    COMMENT "Running pre-build script..."
-    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/build_info.sh"
-    OUTPUT_VARIABLE COMPILATION_INFO
-	OUTPUT_STRIP_TRAILING_WHITESPACE
-	RESULT_VARIABLE EXIT_CODE
-    if(EXIT_CODE EQUAL 0)
-		target_compile_definitions(TrainingPlanner PRIVATE TP_APP_VERSION=${COMPILATION_INFO})
-	else()
-		message(STATUS "Failed to acquire compilation info")
-	endif(EXIT_CODE EQUAL 0)
-    VERBATIM
-)

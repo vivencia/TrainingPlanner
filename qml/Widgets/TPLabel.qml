@@ -43,18 +43,24 @@ Label {
 		asynchronous: true
 		active: _control.helpString.length > 0
 
+		anchors {
+			verticalCenter: parent.verticalCenter
+			right: parent.right
+			rightMargin: -_control.questionMarkOffset
+		}
+
 		sourceComponent: TPButton {
 			imageSource: "question.png"
 			width: AppSettings.itemDefaultHeight
 			height: width
 
-			anchors {
-				verticalCenter: parent.verticalCenter
-				left: parent.right
-				leftMargin: _control.questionMarkOffset
-			}
+			onClicked: helpTip.show(_control.helpString, 5000);
 
-			onClicked: ToolTip.show(_control.helpString, 5000);
+			ToolTip {
+				id: helpTip
+				closePolicy: Popup.CloseOnPressOutside|Popup.CloseOnEscape
+				z: 2
+			}
 		}
 	}
 

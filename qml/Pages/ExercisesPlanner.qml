@@ -10,7 +10,7 @@ import TpQml.Exercises
 
 TPPage {
 	id: pagePlanner
-	image: ":/images/backgrounds/backimage-splits.jpg"
+	imageSource: ":/images/backgrounds/backimage-splits.jpg"
 	backgroundOpacity: 0.6
 	objectName: "exercisesPlanner"
 

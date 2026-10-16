@@ -10,6 +10,7 @@ TPPane {
 	id: _control
 
 	required property TPLogs logsModel
+	property alias parentPage: listView.parentPage
 
 	TPListView {
 		id: listView
@@ -33,6 +34,7 @@ TPPane {
 			required property int index
 			required property bool itemVisible
 			required property bool selected
+
 			required property string logTitle
 			required property string logMessage
 			required property string logTime

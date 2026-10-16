@@ -67,11 +67,6 @@ UsersManager::UsersManager(QObject *parent, const bool bMainUserModel) : QObject
 	connect(this, &UsersManager::userModified, this, &UsersManager::saveUserInfo);
 	connect(this, &UsersManager::mainUserConfigurationFinished, this, [this] () {
 		appOsInterface()->initialCheck();
-		if (appItemManager()->appHomePage()) { //When -test is used, appHomePage() will be nullptr
-			appItemManager()->appHomePage()->setProperty("loadMesosFromCoaches", isClient(0));
-			appItemManager()->appHomePage()->setProperty("loadMesosForSelf", isClient(0));
-			appItemManager()->appHomePage()->setProperty("loadMesosForClients", isCoach(0));
-		}
 	});
 	qDebug() << "UsersManager::UsersManager running on thread: " << thread()->isMainThread();
 }
@@ -154,13 +149,6 @@ void UsersManager::initUserSession()
 			if (appItemManager()->appHomePage())
 				appItemManager()->appHomePage()->setProperty("mesoModel", QVariant::fromValue(meso_model));
 			appMainWindow()->setProperty("appPagesModel", QVariant::fromValue(appPagesListModel()));
-
-			appExercisesList()->initExercisesList();
-			if (appSettings()->appVersion() != TP_APP_VERSION) {
-				//All the code to update the database goes in here
-				//updateDB(new DBMesocyclesTable{nullptr});
-				//appSettings()->saveAppVersion(TP_APP_VERSION);
-			}
 
 			emit mainUserConfigurationFinished();
 			emit onlineUserChanged();

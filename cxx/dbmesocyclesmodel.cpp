@@ -6,7 +6,6 @@
 #include "dbmesocalendartable.h"
 #include "usersmanager.h"
 #include "dbworkoutsorsplitstable.h"
-#include "homepagemesomodel.h"
 #include "qmlitemmanager.h"
 #include "qmlmesointerface.h"
 #include "return_codes.h"
@@ -28,19 +27,6 @@ DBMesocyclesModel::DBMesocyclesModel(QObject *parent)
 	: QObject{parent}
 {
 	connect(appTr(), &TranslationClass::applicationLanguageChanged, this, &DBMesocyclesModel::labelChanged);
-	uint view_index{0};
-	if (appUserModel()->isClient(0)) {
-		m_mesosHomePageModel[MT_MESO_FROM_COACH] = new HomePageMesoModel{this, MT_MESO_FROM_COACH, view_index++};
-		m_mesosHomePageModel[MT_MESO_FOR_SELF] = new HomePageMesoModel{this, MT_MESO_FOR_SELF, view_index++};
-	}
-	if (appUserModel()->isCoach(0))
-		m_mesosHomePageModel[MT_MESO_FOR_CLIENT] = new HomePageMesoModel{this, MT_MESO_FOR_CLIENT, view_index};
-	for (uint i{0}; i < MT_TYPE_COUNT; ++i) {
-		if (m_mesosHomePageModel[i])
-			connect(m_mesosHomePageModel[i], &HomePageMesoModel::currentIndexChanged, this, [this,i] () {
-				setWorkingCalendar(m_mesosHomePageModel[i]->currentMesoIdx());
-			});
-	}
 	getAllMesocycles();
 }
 
@@ -78,7 +64,10 @@ void DBMesocyclesModel::startNewMesocycle(const MesoType type)
 		QString{}, QString{}, QString{}, std::move("RRRRRRR"_L1), QString{}, QString{}, QString{}, QString{},
 		QString{}, QString{}, appUserModel()->userId(0), (type == MT_MESO_FOR_SELF ? appUserModel()->userId(0) : QString{}),
 		QString{}, std::move("1"_L1)}))};
-	addSubMesoModel(meso_idx);
+	for (uint i{MT_MESO_FROM_COACH}; i <= MT_MESO_FOR_CLIENT; ++i) {
+		if (m_mesosHomePageModel[i])
+			m_mesosHomePageModel[i]->appendNewMeso();
+	}
 	static_cast<void>(mesoManager(meso_idx));
 	getMesocyclePage(meso_idx, true);
 }
@@ -96,7 +85,7 @@ void DBMesocyclesModel::removeMesocycle(const uint meso_idx)
 	m_metadata.remove(meso_idx);
 	removeMesoFiles(meso_idx);
 	static_cast<void>(QFile::remove(instructionsFile(meso_idx)));
-	m_mesosHomePageModel[mesoType(meso_idx)]->removeMesoIdx(meso_idx);
+	//m_mesosHomePageModel[mesoType(meso_idx)]->removeMesoIdx(meso_idx);
 	m_mesoData.remove(meso_idx);
 }
 
@@ -111,36 +100,38 @@ void DBMesocyclesModel::getMesoCalendarPage(const uint meso_idx)
 	mesoManager(meso_idx)->getCalendarPage();
 }
 
-HomePageMesoModel *DBMesocyclesModel::homePageViewModelViaIndex(const int view_index) const
+HomePageMesoModel *DBMesocyclesModel::homePageViewModel(const int type) const
 {
-	if (view_index >= 0) {
-		for (uint i{0}; i < MT_TYPE_COUNT; ++i) {
-			if (m_mesosHomePageModel[i] && m_mesosHomePageModel[i]->viewIndex() == view_index)
-				return m_mesosHomePageModel[i];
-		}
+	for (uint i{0}; i < MT_TYPE_COUNT; ++i) {
+		if (m_mesosHomePageModel[i] && m_mesosHomePageModel[i]->type() == type)
+			return m_mesosHomePageModel[i];
 	}
 	return nullptr;
 }
 
 int DBMesocyclesModel::currentMesosView() const
 {
-	int default_view{appUserModel()->mainUserConfigured()
+	const int meso_type{appUserModel()->mainUserConfigured()
 									? (appUserModel()->onlineAccount(0)
 										? (appUserModel()->mainUserIsCoach()
-												? static_cast<int>(homePageViewModel(MT_MESO_FOR_CLIENT)->viewIndex())
-												: static_cast<int>(homePageViewModel(MT_MESO_FROM_COACH)->viewIndex()))
-										: static_cast<int>(homePageViewModel(MT_MESO_FOR_SELF)->viewIndex()))
+												? MT_MESO_FOR_CLIENT
+												: MT_MESO_FROM_COACH)
+										: MT_MESO_FOR_SELF)
 									: -1};
-	return appSettings()->getCustomValue(mesosViewIdxSetting, default_view).toInt();
+	return meso_type >= 0 ? appSettings()->getCustomValue(mesosViewIdxSetting, meso_type).toInt() : -1;
 }
 
-void DBMesocyclesModel::setCurrentMesosView(const int view_index)
+void DBMesocyclesModel::setCurrentMesosView(const int view_index, const bool save)
 {
 	HomePageMesoModel *view_model{homePageViewModelViaIndex(view_index)};
+	if (!view_model) {
+		m_mesosHomePageModel[view_index] = new HomePageMesoModel{this, view_index};
+		view_model->syncMetadata(count());
+	}
 	if (view_model) {
-		const auto new_working_meso{view_model->currentMesoIdx()};
-		setWorkingCalendar(new_working_meso);
-		appSettings()->setCustomValue(mesosViewIdxSetting, view_model->viewIndex());
+		setWorkingCalendar(view_model->currentMesoIdx());
+		if (save)
+			appSettings()->setCustomValue(mesosViewIdxSetting, view_model->type());
 	}
 }
 
@@ -800,7 +791,10 @@ void DBMesocyclesModel::newMesoFromFile(const TPFilePath &filename, const std::o
 			m_dbModelInterface->setModified(meso_idx, -1);
 			appThreadManager()->runAction(m_db, ThreadManager::UpdateSeveralFields, m_dbModelInterface);
 		}
-		addSubMesoModel(meso_idx);
+		for (uint i{MT_MESO_FROM_COACH}; i <= MT_MESO_FOR_CLIENT; ++i) {
+			if (m_mesosHomePageModel[i])
+				m_mesosHomePageModel[i]->appendNewMeso();
+		}
 		checkIfCanExport(meso_idx);
 		QMLMesoInterface *mesomanager{m_mesoManagerList.value(meso_idx)};
 		if (mesomanager)
@@ -808,11 +802,6 @@ void DBMesocyclesModel::newMesoFromFile(const TPFilePath &filename, const std::o
 		else
 			static_cast<void>(mesoManager(meso_idx));
 	}
-}
-
-inline void DBMesocyclesModel::addSubMesoModel(const uint meso_idx)
-{
-	m_mesosHomePageModel[mesoType(meso_idx)]->appendMesoIdx(meso_idx);
 }
 
 const uint DBMesocyclesModel::newMesoData(QStringList &&infolist)
@@ -834,10 +823,10 @@ void DBMesocyclesModel::getAllMesocycles()
 	*conn = connect(m_db, &DBMesocyclesTable::mesocycleAcquired, this, [this,conn] (QStringList meso_info, const bool last_meso) {
 		if (!last_meso) {
 			const uint meso_idx{newMesoData(std::move(meso_info))};
-			addSubMesoModel(meso_idx);
 			checkIfCanExport(meso_idx);
 		} else {
 			disconnect(*conn);
+			setCurrentMesosView(currentMesosView(), false);
 			#ifndef QT_NO_DEBUG
 			emit mesoDataLoaded();
 			#endif

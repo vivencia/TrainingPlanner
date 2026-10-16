@@ -3,7 +3,8 @@
 #include "tputils.h"
 
 #include <QAbstractListModel>
-#include <QtQml/qqml.h>
+#include <QQmlEngine>
+#include <QQuickItem>
 
 class CalendarMethods : public QAbstractListModel
 {

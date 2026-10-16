@@ -50,6 +50,7 @@ TPPopup {
 
 		TPCoachesAndClientsList {
 			id: usersList
+			parentPage: _dialog.parentPage
 			listClients: true
 			listCoaches: true
 			listConfirmed: true

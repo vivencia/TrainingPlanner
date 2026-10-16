@@ -9,7 +9,7 @@ import TpQml.Widgets
 
 TPPage {
 	id: mesoCalendarPage
-	image: ":/images/backgrounds/backimage-calendar.jpg"
+	imageSource: ":/images/backgrounds/backimage-calendar.jpg"
 	backgroundOpacity: 0.6
 	objectName: "mesoCalendarPage"
 

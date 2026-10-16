@@ -330,7 +330,7 @@ TPPopup {
 					}
 				} //Rectangle: delegate's background
 			} //delegate: TreeViewDelegate
-		} // TPListView: messagesList
+		} // TreeView: messagesList
 
 		Item {
 			id: newChatOrMessagePane
@@ -341,6 +341,7 @@ TPPopup {
 
 			TPCoachesAndClientsList {
 				id: chatList
+				parentPage: onlineMsgsDlg.parentPage
 				listClients: true
 				listCoaches: true
 				listConfirmed: true
@@ -371,8 +372,7 @@ TPPopup {
 					text: qsTr("Chat")
 					sourceImage: "chat.png"
 					enabled: newChatOrMessagePane._useridx > 0
-					Layout.preferredWidth: preferredWidth
-					Layout.maximumWidth: parent.width / 2
+					Layout.preferredWidth: parent.width * 0.3
 					onClicked: {
 						AppMessages.openChat(newChatOrMessagePane._useridx);
 						mainLayout.currentIndex = 1;
@@ -382,8 +382,7 @@ TPPopup {
 					text: qsTr("Send message")
 					sourceImage: "send-message.png"
 					enabled: newChatOrMessagePane._useridx > 0
-					Layout.preferredWidth: preferredWidth
-					Layout.maximumWidth: parent.width / 2
+					Layout.preferredWidth: parent.width * 0.6
 					onClicked: {
 						AppMessages.openNewMessageDialog(newChatOrMessagePane._useridx);
 						mainLayout.currentIndex = 1;

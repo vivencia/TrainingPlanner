@@ -11,7 +11,7 @@ import TpQml.User
 TPPage {
 	id: coachesPage
 	objectName: "CoachesPage"
-	image: AppSettings.coachesBackground
+	imageSource: AppSettings.coachesBackground
 	backgroundOpacity: 0.6
 
 //private:

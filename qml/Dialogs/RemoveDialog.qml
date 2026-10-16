@@ -10,20 +10,22 @@ TPPopup {
 	keepAbove: true
 	dim: true
 	width: AppSettings.pageWidth * 0.8
-	height: titleBar.height + topRow.height + warningRow.height + chkDontAskAgain.height + buttonsRow.height
+	height: (10 * _margins) + titleBarHeight + topRow.height + warningRow.height + chkDontAskAgain.height + buttonsRow.height
 	useShape: true
 	showBorder: true
 	showTitleBar: true
 	open_in_window: true
-	canSlideToClose: true
 
 //public:
 	property int requestid
 	property string identifier
-	property string message
 	property string title
-	property list<string> dontAskAgainList
-	property list<int> closeActionList
+	property string message
+	//Check the value of this property on closeActionExeced to determine wether this popup should be called again
+	readonly property bool dontAskAgain: chkDontAskAgain.isChecked
+
+//private:
+	readonly property int _margins: 5
 
 	TPLabel {
 		id: lblTitle
@@ -33,18 +35,20 @@ TPPopup {
 			top: parent.top
 			left: parent.left
 			right: parent.right
-			margins: 5
+			margins: _dialog._margins
 			rightMargin: _dialog.titleBar.titleBarButtons.width
 		}
 	}
 
 	RowLayout {
 		id: topRow
+		height: Math.max(imgElement.height, lblMessage.height)
+
 		anchors {
 			top: lblTitle.bottom
 			left: parent.left
 			right: parent.right
-			margins: 5
+			margins: _dialog._margins
 			topMargin: 10
 		}
 
@@ -63,6 +67,7 @@ TPPopup {
 			horizontalAlignment: Text.AlignJustify
 			visible: _dialog.message.length > 0
 			Layout.preferredWidth: _dialog.width - imgElement.width - 20
+			Layout.preferredHeight: preferredHeight()
 		}
 	}
 
@@ -75,18 +80,19 @@ TPPopup {
 			top: topRow.bottom
 			left: parent.left
 			right: parent.right
-			margins: 5
+			margins: _dialog._margins
 			topMargin: 10
 		}
 
 		TPImage {
 			source: "warning"
-			preferredWidth: AppSettings.itemDefaultHeight
-			preferredHeight: AppSettings.itemDefaultHeight
+			Layout.preferredWidth: AppSettings.itemDefaultHeight
+			Layout.preferredHeight: AppSettings.itemDefaultHeight
 		}
 
 		TPLabel {
 			text: qsTr("This action cannot be undone")
+			Layout.fillWidth: true
 		}
 	}
 
@@ -100,26 +106,20 @@ TPPopup {
 			top: warningRow.bottom
 			left: parent.left
 			right: parent.right
-			margins: 5
-		}
-
-		onChecked: (check) => {
-			if (check)
-				_dialog.dontAskAgainList.push(_dialog.identifier);
-			else
-				_dialog.dontAskAgainList.pop();
+			margins: _dialog._margins
 		}
 	}
 
 	Row {
 		id: buttonsRow
 		spacing: (_dialog.width - btn1.width - btn2.width) / 3
+		height: AppSettings.itemDefaultHeight
 
 		anchors {
 			bottom: parent.bottom
 			left: parent.left
 			right: parent.right
-			margins: 5
+			margins: _dialog._margins
 			leftMargin: spacing
 		}
 
@@ -139,8 +139,6 @@ TPPopup {
 	}
 
 	function buttonClicked(close_action: int): void {
-		if (chkDontAskAgain.isChecked)
-			closeActionList.push(close_action);
 		closePopup(close_action);
 	}
 }

@@ -13,7 +13,7 @@ import "./MesocyclePageElements"
 
 TPPage {
 	id: mesoPage
-	image: ":/images/backgrounds/backimage-meso.jpg"
+	imageSource: ":/images/backgrounds/backimage-meso.jpg"
 	backgroundOpacity: 0.6
 	objectName: "mesoPage"
 

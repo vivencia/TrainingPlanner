@@ -82,7 +82,7 @@ run_as_sudo_detached() {
 
 find_local_ip() {
 	SERVER_IP=""
-	INTERFACE_DATA=$(ip addr show | grep 'inet.*wlan0')
+	INTERFACE_DATA=$(ip addr show | grep 'inet.*wlan')
 	N_WORDS=$(echo "${INTERFACE_DATA}" | awk -F ' ' '{ print NF }')
 	(( N_WORDS++ ))
 	(( z=1 ))

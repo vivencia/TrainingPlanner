@@ -46,6 +46,10 @@ SwipeDelegate {
 			if (item === _control._index)
 				_control.tpListView.delegates_height -= _control.height;
 		}
+		function onCancelRemove(): void {
+			if (_control.listModel.currentRow === _control._index)
+				_control.swipe.close();
+		}
 	}
 
 	Timer {
@@ -70,8 +74,8 @@ SwipeDelegate {
 	}
 
 	swipe.right: Rectangle {
-		width: parent.width
-		height: parent.height
+		width: parent ? parent.width : 0
+		height: parent ? parent.height: 0
 		clip: false
 		color: SwipeDelegate.pressed ? "#555" : "#666"
 		radius: 5
@@ -91,6 +95,7 @@ SwipeDelegate {
 	} //swipe.right
 
 	swipe.onCompleted: {
+		_control.listModel.currentRow = _control._index;
 		if (_control.listModel.isSelected(_control._index))
 			_control.listModel.removeSelected();
 		else

@@ -6,16 +6,6 @@ import TpQml.Widgets
 TPBackRec {
 	id: _control
 	enabled: listModel ? (_control.listModel.enableFilters ? true : listModel.count > 0) : false
-	height: {
-		let ret = 0;
-		if (showSearch)
-			ret = 3*_margins + txtSearch.height;
-		if (showFilter|| showSort)
-			ret += 2*_margins + AppSettings.itemSmallHeight;
-		if (showSelectionOptions)
-			ret += 2*_margins + chkEnableSelection.height;
-		return ret;
-	}
 
 //public:
 	required property TPListView tpListView
@@ -27,6 +17,49 @@ TPBackRec {
 //private:
 	readonly property TPListModel listModel: tpListView.listModel
 	property int _margins: 5
+	property bool _collapsed: true
+	property int _control_height
+
+	Component.onCompleted: changeControlHeight();
+
+	Behavior on height {
+		NumberAnimation {
+			easing.type: Easing.InOutBack
+		}
+	}
+
+	TPLabel {
+		id: lblHeader
+		text: qsTr("Options")
+
+		TPImage {
+			id: imgExpand
+			source: _control._collapsed ? "fold-up.png" : "fold-down.png"
+			width: AppSettings.itemSmallHeight
+			height: width
+
+			anchors {
+				right: parent.right
+				rightMargin: 10
+				verticalCenter: parent.verticalCenter
+			}
+		}
+		MouseArea {
+			z: 1
+			anchors.fill: parent
+			onClicked: {
+				_control._collapsed = !_control._collapsed;
+				_control.changeControlHeight();
+			}
+		}
+
+		anchors {
+			top: parent.top
+			left: parent.left
+			right: parent.right
+			margins: _control._margins
+		}
+	}
 
 	TPButtonGroup {
 		id: sortGroup
@@ -37,7 +70,7 @@ TPBackRec {
 		model: _control.listModel.fieldsNames
 		specialIndex: 0
 		currentIndex: _control.listModel.sortField
-		visible: _control.showSort
+		visible: _control._collapsed && _control.showSort
 		width: parent.width * 0.3
 		onItemActivated: (real_index, index, value) => {
 			_control.listModel.sortField = real_index;
@@ -50,7 +83,7 @@ TPBackRec {
 
 		anchors {
 			right: parent.right
-			top: parent.top
+			top: lblHeader.bottom
 			margins: _control._margins
 		}
 	}
@@ -63,7 +96,7 @@ TPBackRec {
 		imageHeight: AppSettings.itemSmallHeight
 		width: 2*imageHeight + 5
 		height: imageHeight
-		visible: _control.showSort
+		visible: _control._collapsed && _control.showSort
 		enabled: _control.listModel.sortField !== -1
 		onChecked: (check) => {
 			if (check)
@@ -72,7 +105,7 @@ TPBackRec {
 
 		anchors {
 			right: cboSortFields.left
-			top: parent.top
+			verticalCenter: cboSortFields.verticalCenter
 			margins: _control._margins
 		}
 	}
@@ -85,7 +118,7 @@ TPBackRec {
 		imageHeight: AppSettings.itemSmallHeight
 		width: 2*imageHeight + 5
 		height: imageHeight
-		visible: _control.showSort
+		visible: _control._collapsed && _control.showSort
 		enabled: _control.listModel.sortField !== -1
 		onChecked: (check) => {
 			if (check)
@@ -94,7 +127,7 @@ TPBackRec {
 
 		anchors {
 			right: btnSortDown.left
-			top: parent.top
+			verticalCenter: cboSortFields.verticalCenter
 			margins: _control._margins
 		}
 	}
@@ -107,14 +140,14 @@ TPBackRec {
 		isChecked: _control.listModel.enableFilters
 		image: "filter.png"
 		imageHeight: AppSettings.itemSmallHeight
+		visible: _control._collapsed && _control.showFilter
 		width: parent.width * 0.35
-		height: imageHeight
 		onButtonClicked: (btn_id) => _control.listModel.showFiltersDialog();
 		onChecked: (check) => _control.listModel.enableFilters = check;
 
 		anchors {
 			left: parent.left
-			top: parent.top
+			top: lblHeader.bottom
 			margins: _control._margins
 
 		}
@@ -124,10 +157,11 @@ TPBackRec {
 		id: txtSearch
 		showClearTextButton: true
 		showSearchIcon: true
-		visible: _control.showSearch
+		maximumLength: Math.ceil(width/AppSettings.fontSize)
+		visible: _control._collapsed && _control.showSearch
 
 		anchors {
-			top: _control.showFilter ? btnFilter.bottom : (_control.showSort ? cboSortFields.bottom : _control.top)
+			top: _control.showFilter ? btnFilter.bottom : (_control.showSort ? cboSortFields.bottom : lblHeader.bottom)
 			left: parent.left
 			right: parent.right
 			margins: _control._margins
@@ -140,14 +174,14 @@ TPBackRec {
 		id: chkEnableSelection
 		text: qsTr("Selectable")
 		boxType: TPRadioButtonOrCheckBox.TP_CHECKBOX
-		visible: _control.showSelectionOptions
+		visible: _control._collapsed && _control.showSelectionOptions
 		width: _control.width / 2 - 5
 		onChecked: (check) => _control.tpListView.items_selectable = check;
 
 		anchors {
 			bottom: parent.bottom
 			left: parent.left
-			margins: _control._margins
+			leftMargin: _control._margins
 		}
 	}
 
@@ -155,7 +189,7 @@ TPBackRec {
 		id: chkSelectAll
 		text: qsTr("Select All")
 		boxType: TPRadioButtonOrCheckBox.TP_CHECKBOX
-		visible: _control.showSelectionOptions
+		visible: _control._collapsed && _control.showSelectionOptions
 		enabled: _control.enabled && chkEnableSelection.isChecked
 		onClicked: _control.listModel.selectAll();
 
@@ -163,7 +197,20 @@ TPBackRec {
 			bottom: parent.bottom
 			left: chkEnableSelection.right
 			right: parent.right
-			margins: _control._margins
+			leftMargin: _control._margins
 		}
+	}
+
+	function changeControlHeight(): void {
+		let ret = AppSettings.itemDefaultHeight;
+		if (_collapsed) {
+			if (showSearch)
+				ret += 2*_margins + AppSettings.itemDefaultHeight;
+			if (showFilter|| showSort)
+				ret += _margins + AppSettings.itemDefaultHeight;
+			if (showSelectionOptions)
+				ret += _margins + AppSettings.itemDefaultHeight;
+		}
+		_control.height = ret;
 	}
 }

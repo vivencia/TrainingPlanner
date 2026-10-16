@@ -10,7 +10,7 @@ import TpQml.Pages
 TPPage {
 	id: homePage
 	objectName: "homePage"
-	image: ":/images/backgrounds/backimage-home.jpg"
+	imageSource: ":/images/backgrounds/backimage-home.jpg"
 
 	property bool loadMesosFromCoaches: false
 	property bool loadMesosForSelf: false
@@ -65,13 +65,13 @@ TPPage {
 
 		Loader {
 			id: mesosFromCoachesLoader
-			active: homePage.loadMesosFromCoaches
+			active: homePage.mesoModel.homePageViewModel(MesocyclesModel.MT_MESO_FROM_COACH) !== null
 			asynchronous: true
 
 			property int index
 
 			sourceComponent: MesosList {
-				mesoSubModel: homePage.mesoModel.homePageViewModel(MesocyclesModel.MT_MESO_FROM_COACH)
+				mesoFilteredModel: homePage.mesoModel.homePageViewModel(MesocyclesModel.MT_MESO_FROM_COACH)
 				index: mesosFromCoachesLoader.index
 			}
 		}
@@ -84,7 +84,7 @@ TPPage {
 			property int index
 
 			sourceComponent: MesosList {
-				mesoSubModel: homePage.mesoModel.homePageViewModel(MesocyclesModel.MT_MESO_FOR_SELF)
+				mesoFilteredModel: homePage.mesoModel.homePageViewModel(MesocyclesModel.MT_MESO_FOR_SELF)
 				index: mesosForSelfLoader.index
 			}
 		}
@@ -97,7 +97,7 @@ TPPage {
 			property int index
 
 			sourceComponent: MesosList {
-				mesoSubModel: homePage.mesoModel.homePageViewModel(MesocyclesModel.MT_MESO_FOR_CLIENT)
+				mesoFilteredModel: homePage.mesoModel.homePageViewModel(MesocyclesModel.MT_MESO_FOR_CLIENT)
 				index: mesosForClientsLoader.index
 			}
 		}

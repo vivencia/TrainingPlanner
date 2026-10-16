@@ -12,15 +12,14 @@ Item {
 	id: _control
 
 //public:
-	required property HomePageMesoModel mesoSubModel
-	property int index
+	required property HomePageMesoModel mesoFilteredModel
 	readonly property int bottomBarHeight: height * (Qt.platform.os !== "android" ? 0.2 : 0.25)
 
 	TPLabel {
 		id: lblTitle
-		text: _control.mesoSubModel.viewTitle
+		text: _control.mesoFilteredModel.viewTitle
 		useBackground: true
-		backgroundColor: _control.mesoSubModel.backgroundColor
+		backgroundColor: _control.mesoFilteredModel.backgroundColor
 
 		anchors {
 			top: parent.top
@@ -31,7 +30,8 @@ Item {
 
 	TPListView {
 		id: mesosListView
-		model: _control.mesoSubModel
+		listModel: _control.mesoFilteredModel
+		parentPage:_control.mesoFilteredModel.parentPage as TPPage
 		spacing: 10
 		width: _control.width
 		height: calculatePreferredHeight()
@@ -45,7 +45,7 @@ Item {
 
 		readonly property int maxHeight: _control.height * 0.8 - lblTitle.height - 10
 
-		/** When homePage is loaded, mesoSubModel is probably loaded so no countChanged signal. When mesosListView is
+		/** When homePage is loaded, mesoFilteredModel is probably loaded so no countChanged signal. When mesosListView is
 		  * completed, the delegates are not. So, the only way to resize the list upon start up is to wait for the appropriate
 		  * delegates to load (itemAtIndex() will not be null) before calculating the height. All of this is that so TPSwipeView
 		  * (or, indeed SwipeView for that matter) will have more space to swipe (other than the title label and the left/right
@@ -58,18 +58,18 @@ Item {
 		}
 
 		Connections {
-			target: _control.mesoSubModel
+			target: _control.mesoFilteredModel
 			function onCountChanged(): void {
 				mesosListView.height = mesosListView.calculatePreferredHeight();
 			}
 		}
 
 		function calculatePreferredHeight(): int {
-			if (_control.mesoSubModel.count > 0) {
+			if (_control.mesoFilteredModel.count > 0) {
 				let children_height = 0;
-				for (let i = 0; i < _control.mesoSubModel.count; ++i) {
+				for (let i = 0; i < _control.mesoFilteredModel.count; ++i) {
 					let _item = itemAtIndex(i);
-					if (!_item) { //we know there has to be a delegate(model.count > 0), so we wait for it
+					if (!_item) { //we know there has to be a delegate because model.count > 0, so we wait for it
 						waitForDelegatesTimer.start();
 						return 0;
 					} else {
@@ -86,12 +86,16 @@ Item {
 			return 0;
 		}
 
-		delegate: SwipeDelegate {
+		delegate: TPListViewDelegate {
 			id: delegate
-			width: parent.width
-			onClicked: _control.mesoSubModel.mesoModel().getMesocyclePage(mesoIdx, false);
+			_index: index
+			_itemVisible: itemVisible
+			tpListView: mesosListView
 
 			required property int index
+			required property bool itemVisible
+			required property bool selected
+
 			required property string mesoName
 			required property string mesoStartDate
 			required property string mesoEndDate
@@ -144,7 +148,7 @@ Item {
 						leftMargin: 5
 					}
 
-					onClicked: _control.mesoSubModel.mesoModel().getMesocyclePage(delegate.mesoIdx, false);
+					onClicked: _control.mesoFilteredModel.mesoModel().getMesocyclePage(delegate.mesoIdx, false);
 				}
 
 				TPButton {
@@ -165,7 +169,7 @@ Item {
 						leftMargin: 5
 					}
 
-					onClicked: _control.mesoSubModel.mesoModel().getMesoCalendarPage(delegate.mesoIdx);
+					onClicked: _control.mesoFilteredModel.mesoModel().getMesoCalendarPage(delegate.mesoIdx);
 				}
 
 				TPButton {
@@ -186,7 +190,7 @@ Item {
 						leftMargin: 5
 					}
 
-					onClicked: _control.mesoSubModel.mesoModel().getExercisesPlannerPage(delegate.mesoIdx);
+					onClicked: _control.mesoFilteredModel.mesoModel().getExercisesPlannerPage(delegate.mesoIdx);
 				}
 
 				TPButton {
@@ -207,7 +211,7 @@ Item {
 						leftMargin: 5
 					}
 
-					onClicked: _control.mesoSubModel.showOptionsMenu(btnExport, delegate.mesoIdx);
+					onClicked: _control.mesoFilteredModel.showOptionsMenu(btnExport, delegate.mesoIdx);
 				}
 			} //swipe.left: Rectangle
 
@@ -260,7 +264,7 @@ Item {
 					parentPage: ItemManager.appPagesManager.homePage() as TPPage
 
 					property string meso_name
-					onButton1Clicked: _control.mesoSubModel.mesoModel().removeMesocycle(delegate.mesoIdx);
+					onButton1Clicked: _control.mesoFilteredModel.mesoModel().removeMesocycle(delegate.mesoIdx);
 				}
 			} //swipe.right
 
@@ -269,8 +273,14 @@ Item {
 				anchors.fill: parent
 				radius: 8
 				layer.enabled: true
-				color: _control.mesoSubModel.ownMesosModel ? AppSettings.primaryColor : AppSettings.primaryDarkColor
-				border.color: delegate.index === _control.mesoSubModel.currentIndex ? AppSettings.fontColor : "transparent"
+				color: {
+					switch (_control.mesoFilteredModel.type) {
+						case MesocyclesModel.MT_MESO_FROM_COACH: return AppSettings.primaryColor;
+						case MesocyclesModel.MT_MESO_FOR_SELF: return AppSettings.primaryLightColor;
+						case MesocyclesModel.MT_MESO_FOR_CLIENT: return AppSettings.primaryDarkColor;
+					}
+				}
+				border.color: delegate.index === _control.mesoFilteredModel.currentRow ? AppSettings.fontColor : "transparent"
 				visible: false
 			}
 
@@ -304,13 +314,13 @@ Item {
 					text: delegate.mesoCoach
 					fontColor: AppSettings.fontColor
 					Layout.maximumWidth: parent.width
-					visible: _control.mesoSubModel.type === MesocyclesModel.MT_MESO_FOR_CLIENT
+					visible: _control.mesoFilteredModel.type === MesocyclesModel.MT_MESO_FOR_CLIENT
 				}
 				TPLabel {
 					text: delegate.mesoClient
 					fontColor: AppSettings.fontColor
 					Layout.maximumWidth: parent.width
-					visible: _control.mesoSubModel.type === MesocyclesModel.MT_MESO_FOR_CLIENT
+					visible: _control.mesoFilteredModel.type === MesocyclesModel.MT_MESO_FOR_CLIENT
 				}
 				TPLabel {
 					text: delegate.mesoStartDate
@@ -347,13 +357,13 @@ Item {
 				id: btnAddMeso
 				text: qsTr("New Training Program")
 				image: "mesocycle-add.png"
-				visible: _control.mesoSubModel.type !== MesocyclesModel.MT_MESO_FOR_CLIENT
+				visible: _control.mesoFilteredModel.type !== MesocyclesModel.MT_MESO_FOR_CLIENT
 				Layout.preferredWidth: preferredWidth
 				Layout.maximumWidth: parent.width
 				Layout.maximumHeight: AppSettings.itemDefaultHeight
 				Layout.alignment: Qt.AlignCenter
 
-				onClicked: _control.mesoSubModel.mesoModel().startNewMesocycle(_control.mesoSubModel.ownMesosModel);
+				onClicked: _control.mesoFilteredModel.mesoModel().startNewMesocycle(_control.mesoFilteredModel.type);
 			}
 
 			TPButton {
@@ -372,12 +382,12 @@ Item {
 				id: btnWorkout
 				text: qsTr("Today's workout")
 				image: "workout.png"
-				enabled: _control.mesoSubModel.canHaveTodaysWorkout
+				enabled: _control.mesoFilteredModel.canHaveTodaysWorkout
 				Layout.preferredWidth: preferredWidth
 				Layout.maximumHeight: AppSettings.itemDefaultHeight
 				Layout.alignment: Qt.AlignCenter
 
-				onClicked: _control.mesoSubModel.mesoModel().startTodaysWorkout(_control.mesoSubModel.currentMesoIdx());
+				onClicked: _control.mesoFilteredModel.mesoModel().startTodaysWorkout(_control.mesoFilteredModel.currentMesoIdx());
 			}
 		} //ColumnLayout
 	}

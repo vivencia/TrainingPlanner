@@ -268,13 +268,15 @@ void TPMessagesManager::startMessagesManager()
 			switch (m_messagesManagerComponent->status()) {
 			case QQmlComponent::Ready:
 				m_messagesManagerComponent->disconnect();
-				m_messagesManagerDialog = m_messagesManagerComponent->create(appQmlEngine()->rootContext());
+				m_messagesManagerDialog = m_messagesManagerComponent->createWithInitialProperties(
+								{ {"parentPage"_L1, QVariant::fromValue(appItemManager()->appHomePage())}}
+								, appQmlEngine()->rootContext());
 #ifndef QT_NO_DEBUG
-				m_messagesManagerDialog->setProperty("objectName", std::move(QVariant{"onlineMessages"}));
 				if (!m_messagesManagerDialog) {
 					qCritical() << m_messagesManagerComponent->errorString();
 					return;
 				}
+				m_messagesManagerDialog->setProperty("objectName", std::move(QVariant{"onlineMessages"}));
 #endif
 				appQmlEngine()->setObjectOwnership(m_messagesManagerDialog, QQmlEngine::CppOwnership);
 				emit graphicalInterfaceReady();

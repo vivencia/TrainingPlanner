@@ -3,7 +3,6 @@
 #include "tplistmodel.h"
 
 #include <QDateTime>
-#include <QQmlEngine>
 
 using namespace Qt::Literals;
 
@@ -70,6 +69,7 @@ public:
 		return m_entries.at(entry).m_tooltip;
 	}
 
+	//--------------- Base Class overrides -------------------
 	void setFieldsNames() override final;
 	inline const QString &dataValue(const uint real_row, const uint column) const override final
 	{
@@ -82,9 +82,8 @@ public:
 		default: Q_UNREACHABLE_RETURN(m_dummy);
 		}
 	}
-
-protected:
 	QVariant data(const uint role, const uint row, const int column = -1) const override final;
+	//--------------- Base Class overrides -------------------
 
 private:
 	LogType m_type;

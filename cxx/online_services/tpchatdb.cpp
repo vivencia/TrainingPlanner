@@ -48,7 +48,7 @@ QString TPChatDB::dbFilePath() const
 
 QString TPChatDB::dbFileName(const bool fullpath) const
 {
-	const QString &filename{"chat"_L1 % dbfile_extension};
+	const QString &filename{m_chat->otherUserId() % dbfile_extension};
 	return fullpath ? dbFilePath() % filename : filename;
 }
 

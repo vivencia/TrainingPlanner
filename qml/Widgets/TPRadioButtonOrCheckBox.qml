@@ -29,7 +29,7 @@ TPBackRec {
 	property TPButtonGroup buttonGroup: null
 	readonly property int preferredWidth: label.preferredWidth + (_left_control ? _left_control.width : 0)
 																		+ (_right_control ? _right_control.width : 0) + 10
-	readonly property int preferredHeight: label.preferredHeight()
+	property int preferredHeight: label.preferredHeight()
 
 	enum BoxType { TP_RADIOBOX, TP_CHECKBOX, TP_NONEBOX }
 	//only if enableClicks is true. If enableCheckOutsideIndicator is true both clicked() and checked() will be emitted
@@ -120,6 +120,8 @@ TPBackRec {
 				buttonGroup.setChecked(this, true);
 		}
 		_component_completed = true;
+		if (helpString.length > 0)
+			enableCheckOutsideIndicator = false;
 		if (width >= AppSettings.itemSmallHeight)
 			setupLayout();
 	}
@@ -268,10 +270,12 @@ TPBackRec {
 		label.anchors.bottom = _bottom_control ? _bottom_control.top : bottom;
 		label.anchors.left = _left_control ? _left_control.right : left;
 		label.anchors.right = _right_control ? _right_control.left : right;
-		height = Math.max(label.preferredHeight()) + (_top_control ? _top_control.height : 0) +
-											(_bottom_control ? _bottom_control.height : 0) + 10
+		preferredHeight = 10 + label.preferredHeight() + (_top_control ? _top_control.height : 0) +
+																	(_bottom_control ? _bottom_control.height : 0)
+		if (helpString.length > 0)
+			label.rightPadding = AppSettings.itemDefaultHeight;
 		if (_right_control)
-			label.questionMarkOffset = _control.width - label.width;
+			label.questionMarkOffset = width - label.width;
 	}
 
 	function checkFunction(): void {

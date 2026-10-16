@@ -9,7 +9,7 @@ import TpQml.Exercises
 
 TPPage {
 	id: exercisesPage
-	image: ":/images/backgrounds/backimage-exercises.jpg"
+	imageSource: ":/images/backgrounds/backimage-exercises.jpg"
 	backgroundOpacity: 0.6
 	objectName: "exercisesPage"
 

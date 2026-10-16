@@ -29,7 +29,7 @@ public:
 		m_modelData = &m_otherModelData;
 		if (count() > 0) {
 			clear();
-			syncMetadata(m_modelData->count(), false);
+			syncMetadata(m_modelData->count(), true);
 		}
 		emit layoutChanged();
 	}
@@ -52,7 +52,6 @@ public slots:
 	void userModified(const uint user_idx, const uint field);
 
 signals:
-	void currentUserIdxChanged();
 	void showClientsChanged();
 	void showCoachesChanged();
 	void showConfirmedChanged();

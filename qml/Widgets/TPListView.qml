@@ -3,7 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 
 import TpQml
-
+import TpQml.Pages
 import "ListViewComponents"
 
 Item {
@@ -12,7 +12,7 @@ Item {
 
 //public:
 	required property TPListModel listModel
-
+	required property TPPage parentPage
 	property bool showHeader: true
 	property bool canFilter: showHeader
 	property bool canSearch: showHeader
@@ -22,12 +22,14 @@ Item {
 	property alias spacing: _listView.spacing
 	//readonly property alias vBar: _vBar
 	readonly property int minimumHeight: 15 + _headerLoader.height +
-										(_listView.count > 0 ? _listView.itemAtIndex(0).height + 2*_listView.spacing : 0)
+										(_listView.count > 0 ? _listView.itemAt(0,0).height + 2*_listView.spacing : 0)
 	readonly property int contentHeight: _listView.contentHeight + _headerLoader.height
 
 //protected:
 	property bool items_selectable: false
 	property int delegates_height: 0
+
+	Component.onCompleted: listModel.parentPage = _control.parentPage;
 
 	Loader {
 		id: _headerLoader
@@ -87,6 +89,14 @@ Item {
 			}
 		}
 
+		Connections {
+			target: _control.listModel
+			function onItemAdded(index: int): void {
+				if (_control.listModel.itemIsVisible(index))
+					_listView.positionViewAtIndex(index, ListView.Center)
+			}
+		}
+
 		anchors {
 			top: _control.showHeader ? _headerLoader.bottom : parent.top
 			left: parent.left
@@ -95,4 +105,8 @@ Item {
 			topMargin: 15
 		}
 	} //ListView
+
+	function itemAtIndex(index: int): Item {
+		return _listView.itemAtIndex(index);
+	}
 }

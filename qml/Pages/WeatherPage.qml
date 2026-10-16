@@ -13,7 +13,7 @@ import "./WeatherPageElements"
 TPPage {
 	id: weatherPage
 	objectName: "weatherPage"
-	image: AppSettings.weatherBackground
+	imageSource: AppSettings.weatherBackground
 	backgroundOpacity: 0.6
 
 	WeatherInfo {

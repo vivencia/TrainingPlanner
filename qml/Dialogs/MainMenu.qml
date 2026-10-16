@@ -157,7 +157,7 @@ Drawer {
 		}
 
 		TPLabel {
-			text: "TrainingPlanner by VivenciaSoftware - " + AppSettings.appVersion
+			text: AppSettings.appVersionFancy()
 			wrapMode: Text.WordWrap
 			font: AppGlobals.smallFont
 			horizontalAlignment: Text.AlignHCenter
@@ -217,9 +217,15 @@ Drawer {
 			Layout.fillWidth: true
 		}
 
-		TPListView {
+		ListView {
 			id: pagesList
 			model: ItemManager.appPagesManager
+			boundsBehavior: ListView.StopAtBounds
+			delegateModelAccess: DelegateModel.ReadOnly
+			reuseItems: true
+			clip: true
+			focus: true
+			spacing: 2
 			Layout.fillWidth: true
 			Layout.minimumHeight: _mainMenu.height * 0.35
 
@@ -307,6 +313,6 @@ Drawer {
 	}
 	function showSwitchUserDialog(): void {
 		allUsersDialogLoader.active = true;
-		AppUserModel.getAllOnlineUsers();
+		AppUserModel.getOnlineUsers();
 	}
 } //Drawer

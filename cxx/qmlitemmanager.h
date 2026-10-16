@@ -55,6 +55,12 @@ public:
 	inline TPLogs *messagesLog() const { return m_messagesLog; }
 	inline TPLogs *coreLog() const { return m_coreLog; }
 	inline TPLogs *debugLog() const { return m_debugLog; }
+#ifndef QT_NO_DEBUG
+	Q_INVOKABLE inline void log(int type, const QString &origin, const QString &title, const QString &message) const
+	{
+		log(static_cast<TPLogs::LogType>(type), origin, std::move(QString{title}), std::move(QString{message}));
+	}
+#endif
 	void log(TPLogs::LogType type, const QString &origin, QString &&title, QString &&message) const;
 	//Allow/disallow logging of messages. It's the responsability of the caller to revert the option after changing it
 	inline void setDoLogMessages(const bool do_log) { m_doLog = do_log; }
@@ -90,7 +96,7 @@ signals:
 	void selectedExerciseFromSimpleExercisesList(QQuickItem *parentPage);
 	void mesoForImportSelected();
 	void qmlPasswordDialogClosed(int resultCode, QString password);
-	void removeDialogClosed(const int request_id, const int close_action_type);
+	void removeDialogClosed(const int request_id, const int close_action_type, const bool dont_ask_again);
 	void logsChanged();
 	void passwordAcquired(const bool proceed, const int request_id, const QString &passwd, const bool store);
 	void passwordCreated(const bool proceed, const int request_id, const QString &passwd, const bool store);

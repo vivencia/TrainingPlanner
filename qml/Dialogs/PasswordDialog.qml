@@ -12,8 +12,8 @@ TPPopup {
 	keepAbove: true
 	dim: true
 	width: AppSettings.pageWidth * 0.8
-	height: titleBar.height + topRow.height + newPasswordLoader.height + txtPassword.height + chkStorePassword.height
-																											+ bottomRow.height
+	height: titleBar.height + topRow.height + newPasswordLoader.height + txtPassword.height
+																		+ chkStorePassword.height + bottomRow.height
 	useShape: true
 	showBorder: true
 	showTitleBar: true
@@ -95,6 +95,7 @@ TPPopup {
 
 	RowLayout {
 		id: topRow
+		spacing: 5
 
 		anchors {
 			top: lblTitle.bottom
@@ -198,7 +199,7 @@ TPPopup {
 		text: qsTr("Save password")
 		isChecked: _dialog.store_password
 		visible: _dialog.show_store_option
-		height: visible ? preferredHeight : 0
+		height: _dialog.show_store_option ? preferredHeight : 0
 
 		anchors {
 			bottom: bottomRow.top

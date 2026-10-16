@@ -64,28 +64,25 @@ TPListModel::TPListModel(QObject *parent, const uint n_cols) : QAbstractListMode
 	roleToString(selected)
 	roleToString(itemVisible)
 
-	auto addNoSortField = [this] () -> void {
-		m_fieldsNames.append(std::move(tr("Unsorted")));
-		m_fieldsNames.append(std::move("--"));
-		setFieldsNames();
-	};
-
 	connect(this, &TPListModel::rowsInserted, this, [this] (const QModelIndex &parent, int first, int last) {
 		for (int i{first}; i <= last; ++i)
-			insertMetaData(realRow(i));
+			insertMetaData(i);
 	});
 	connect(this, &TPListModel::rowsRemoved, this, [this] (const QModelIndex &parent, int first, int last) {
-		for (int i{last}; i <= first; --i)
-			removeMetaData(realRow(i));
+		for (int i{last}; i >= first; --i)
+			removeMetaData(i);
 	});
 	connect(this, &TPListModel::modelReset, this, [this] () {
 		clear();
 	});
 
-	addNoSortField();
-	connect(appTr(), &TranslationClass::applicationLanguageChanged, this, [this,addNoSortField] () {
+	m_fieldsNames.append(std::move(tr("Unsorted")));
+	m_fieldsNames.append(std::move("--"));
+	connect(appTr(), &TranslationClass::applicationLanguageChanged, this, [this] () {
 		m_fieldsNames.clear();
-		addNoSortField();
+		m_fieldsNames.append(std::move(tr("Unsorted")));
+		m_fieldsNames.append(std::move("--"));
+		setFieldsNames();
 		emit fieldsNamesChanged();
 	});
 }
@@ -199,7 +196,7 @@ void TPListModel::applyFilters(const bool do_layout_signals)
 
 	if (m_sortDirection != NO_SORT)
 		sort(false);
-	if (m_searchField >= 0)
+	if (m_searchTerm.length() > 3)
 		search(m_searchTerm, m_searchField);
 	setCurrentRow(count() > 0 ? 0 : -1);
 	if (do_layout_signals)
@@ -226,8 +223,6 @@ void TPListModel::sort(const bool do_layout_signals)
 					if (res > 0)
 						--new_virt_index;
 				}
-				if (m_searchField >= 0)
-					toLastState(row, false);
 			}
 		} while (++other_row  < m_rowsMetadata.count());
 		m_rowsMetadata[row].virt_index = new_virt_index;
@@ -251,37 +246,50 @@ void TPListModel::search(const QString &search_term, int field, const bool do_la
 	if (search_term == m_searchTerm)
 		return;
 
-	if (search_term.length() <= 3) {
-		if (!m_searchTerm.isEmpty()) {
-			m_searchTerm.clear();
-			m_searchField = -1;
-			for (auto &row_data : m_rowsMetadata)
-				row_data.past_states.clear();
-		}
-		return;
-	} else {
-		auto diff{m_searchTerm.length() - search_term.length()};
-		if (diff <= 0) {
-			for (auto &row_data : m_rowsMetadata)
-				fromLastState(row_data.real_index);
-		}
+	auto diff{search_term.length() - m_searchTerm.length()};
+	if (diff < 0) {
+		if (do_layout_signals)
+			emit layoutAboutToBeChanged();
+		for (auto &row_data : m_rowsMetadata)
+			restoreState(row_data.real_index, (-1 * diff) < row_data.past_states.count() ? diff : -row_data.past_states.count());
 	}
-	if (do_layout_signals)
-		emit layoutAboutToBeChanged();
 
 	m_searchTerm = search_term;
+	if (diff <= 0 && do_layout_signals) {
+		emit layoutChanged();
+		return;
+	} else if (m_searchTerm.length() <= 3)
+		return;
+
+	if (diff > 0 && do_layout_signals)
+		emit layoutAboutToBeChanged();
+
 	m_searchField = field;
 	const QStringList &words_list{prepareSearchTerm(m_searchTerm)};
 
+	//Save the state of all hidden items first. The save states must be consistent for all items and correspond to the length
+	//(from the 4th position on) of the search string, i.e a search string of 13 characters ("search term 1") will produce 10
+	//save states(1 = 9, ' ' = 8, m = 7, r = 6, e = 5, t = 4, ' ' = 3, h = 2, c = 1, r = 0). When/if the 'r' is removed, the
+	//first save state will be popped out and the model will return to the pre-search state.
+	for (uint i{0}; i < m_rowsMetadata.count(); ++i) {
+		if (m_rowsMetadata.at(i).virt_index < 0)
+			saveState(m_rowsMetadata.at(i).real_index, true);
+	}
+
+	//Now go in -visible- order, respecting any sorting that might be occurring, and see if the item should or not continue to be visible
+	uint next_virt_index{0};
 	uint new_virt_index{0};
-	for (auto &row_data : m_rowsMetadata) {
-		if (row_data.virt_index >= 0) { //visible
-			const bool visible{itemShouldRemainVisible(row_data.real_index, words_list)};
-			if (!visible)
-				setVisible(row_data.real_index, false);
-			else
-				row_data.virt_index = new_virt_index++;
-			toLastState(row_data.real_index, true);
+	for (int i{0}; i < m_rowsMetadata.count(); ++i) {
+		if (m_rowsMetadata.at(i).virt_index == next_virt_index) {
+			saveState(m_rowsMetadata.at(i).real_index, true);
+			if (!itemShouldRemainVisible(m_rowsMetadata.at(i).real_index, words_list)) {
+				setVisible(m_rowsMetadata.at(i).real_index, false);
+				m_rowsMetadata[i].virt_index = -1;
+			} else {
+				m_rowsMetadata[i].virt_index = new_virt_index++;
+			}
+			++next_virt_index;
+			i = -1;
 		}
 	}
 	if (do_layout_signals)
@@ -314,6 +322,105 @@ int TPListModel::find(const bool visible_rows, const QString &needle, int field)
 		}
 	}
 	return -1;
+}
+
+bool TPListModel::askBeforeRemove() const
+{
+	if (m_askBeforeRemove.has_value())
+		return m_askBeforeRemove.value();
+	else
+		return appSettings()->alwaysAskConfirmation();
+}
+
+void TPListModel::syncMetadata(const uint modeldata_count, const bool do_qml_signals)
+{
+	if (modeldata_count > 0) {
+		if (do_qml_signals)
+			beginResetModel();
+		m_rowsMetadata.reserve(modeldata_count);
+		for (uint row{0}; row < modeldata_count; ++row) {
+			st_rowData row_data;
+			row_data.real_index = row;
+			if (m_selectEntireRow) {
+				row_data.visible.append(true);
+				row_data.selected.append(false);
+			} else {
+				row_data.visible.reserve(m_totalCols);
+				row_data.selected.reserve(m_totalCols);
+				for (uint i{0}; i < m_totalCols; ++i) {
+					row_data.visible.append(true);
+					row_data.selected.append(false);
+				}
+			}
+			m_rowsMetadata.append(std::move(row_data));
+		}
+		if (m_enableFilters)
+			applyFilters(false);
+		if (m_sortDirection != NO_SORT)
+			sort(false);
+		if (m_searchTerm.length() > 3)
+			search(m_searchTerm, m_searchField);
+		setCurrentRow(0);
+		if (do_qml_signals)
+			endResetModel();
+		emit countChanged();
+	}
+}
+
+void TPListModel::insertMetaData(const int row)
+{
+	if (row < m_rowsMetadata.count()) {
+		for (auto &row_data : m_rowsMetadata | std::views::drop(row)) {
+			row_data.real_index++;
+			if (m_sortDirection == NO_SORT)
+				row_data.virt_index++;
+		}
+	}
+	st_rowData row_data;
+	row_data.real_index = row;
+	bool visible{m_enableFilters ? itemShouldBeVisible(row) : true};
+	row_data.virt_index = visible ? row : -1;
+	if (m_selectEntireRow) {
+		row_data.visible.append(visible);
+		row_data.selected.append(false);
+	} else {
+		row_data.visible.reserve(m_totalCols);
+		row_data.selected.reserve(m_totalCols);
+		for (uint i{0}; i < m_totalCols; ++i) {
+			row_data.visible.append(visible);
+			row_data.selected.append(false);
+		}
+	}
+	m_rowsMetadata.insert(row, std::move(row_data));
+
+	if (m_sortDirection != NO_SORT)
+		insertSort(row);
+	if (m_searchTerm.length() > 3) {
+		visible = itemShouldRemainVisible(row, prepareSearchTerm(m_searchTerm));
+		syncNewItemStates(row, visible);
+	}
+	if (visible)
+		++m_nVisibleRows;
+	else if (m_sortDirection != NO_SORT)
+		emit dataChanged(index(row, 0), index(row, 0));
+	emit countChanged();
+	emit itemAdded(row);
+}
+
+void TPListModel::removeMetaData(const int row)
+{
+	emit itemRemoved(row);
+	const int start_virt_row{m_rowsMetadata.at(row).virt_index};
+	m_rowsMetadata.removeAt(row);
+	emit layoutAboutToBeChanged();
+	for (auto &row_data : m_rowsMetadata) {
+		if (row_data.real_index > row)
+			--row_data.real_index;
+		if (row_data.virt_index > start_virt_row)
+			--row_data.virt_index;
+	}
+	emit layoutChanged();
+	emit countChanged();
 }
 
 QVariant TPListModel::data(const QModelIndex &index, int role) const
@@ -349,18 +456,22 @@ bool TPListModel::setData(const QModelIndex &index, const QVariant &value, int r
 	return false;
 }
 
-void TPListModel::remove(const bool from_qml)
+void TPListModel::remove(const bool from_qml, const bool bypass_confirmation)
 {
 	if (!m_rowsToRemove.isEmpty()) {
-		if (from_qml && appSettings()->alwaysAskConfirmation()) {
+		if (!bypass_confirmation && from_qml && askBeforeRemove()) {
 			const int requestid{appUtils()->generateUniqueId()};
 			auto conn{std::make_shared<QMetaObject::Connection>()};
 			*conn = connect(appItemManager(), &QmlItemManager::removeDialogClosed, this, [this,requestid,conn]
-																	(const int request_id, const int close_action_type) {
+								(const int request_id, const int close_action_type, const bool dont_ask_again) {
 				if (requestid == request_id) {
 					disconnect(*conn);
-					if (close_action_type == 0)
-						remove(false);
+					if (close_action_type == 0) {
+						setAskBeforeRemove(!dont_ask_again);
+						remove(true, true);
+					} else {
+						emit cancelRemove(-1);
+					}
 				}
 			});
 			QString message;
@@ -380,8 +491,12 @@ void TPListModel::remove(const bool from_qml)
 			appItemManager()->showRemoveDialog(requestid, m_parentPage, m_identifier, tr("Remove ") % m_identifier, message);
 			return;
 		}
-		for (const auto row : m_rowsToRemove | std::views::reverse)
-			removeMetaData(row);
+		if (from_qml)
+			beginRemoveRows(QModelIndex{}, m_rowsToRemove.constFirst(), m_rowsToRemove.constLast());
+		//for (const auto row : m_rowsToRemove | std::views::reverse)
+		//	removeMetaData(row);
+		if (from_qml)
+			endRemoveRows();
 	}
 }
 
@@ -398,49 +513,55 @@ void TPListModel::fixVirtualIndices()
 void TPListModel::insertSort(const uint row)
 {
 	if (m_rowsMetadata.at(row).virt_index >= 0) {
-		auto new_virt_index{m_sortDirection == SORT_DOWN ? 0 : m_nVisibleRows > 0 ? m_rowsMetadata.count() - 1 : 0};
-		auto other_row{0};
 		const QString &data_value{dataValue(row, m_sortField)};
+		uint next_virt_index{0};
 		do {
-			if (row != other_row && visible(other_row)) {
-				const auto res{compareStrings(data_value, dataValue(other_row, m_sortField))};
-				if (m_sortDirection == SORT_DOWN) {
-					if (res >= 0)
-						++new_virt_index;
-				} else {
-					if (res > 0)
-						--new_virt_index;
-				}
-				if (m_searchField >= 0)
-					toLastState(row, false);
-			}
-		} while (++other_row  < m_rowsMetadata.count());
-		const bool row_moved{m_rowsMetadata[row].virt_index != new_virt_index};
-		m_rowsMetadata[row].virt_index = new_virt_index;
-		if (row_moved) {
-			if (m_sortDirection == SORT_DOWN) {
-				for (auto &row_data : m_rowsMetadata) {
-					if (row_data.real_index != row) {
-						if (row_data.virt_index <= new_virt_index)
-							++(row_data.virt_index);
+			auto other_row{0};
+			for (; other_row < m_rowsMetadata.count(); ++other_row) {
+				if (other_row != row) {
+					const int other_virt_index{m_searchTerm.length() <= 3 ? m_rowsMetadata.at(other_row).virt_index :
+														m_rowsMetadata.at(other_row).past_states.constFirst().first};
+					if (other_virt_index == next_virt_index) {
+						const auto res{compareStrings(data_value, dataValue(other_row, m_sortField))};
+						const bool insert_here{m_sortDirection == SORT_DOWN ? res <= 0 : res > 0};
+						if (insert_here) {
+							int first_modified_row{-1}, last_modified_row{-1};
+							m_rowsMetadata[row].virt_index = other_virt_index;
+							for (other_row = 0; other_row < m_rowsMetadata.count(); ++other_row) {
+								if (other_row != row) {
+									if (m_searchTerm.length() <= 3) { //Search not active
+										if (m_rowsMetadata.at(other_row).virt_index >= other_virt_index) {
+											m_rowsMetadata[other_row].virt_index++;
+											if (first_modified_row == -1)
+												first_modified_row = other_row;
+											last_modified_row = other_row;
+										}
+									} else { //Search active, modify baseline states only
+										if (m_rowsMetadata.at(other_row).past_states.constFirst().first >= other_virt_index) {
+											m_rowsMetadata[other_row].past_states.first().first++;
+											if (first_modified_row == -1)
+												first_modified_row = other_row;
+											last_modified_row = other_row;
+										}
+									}
+								}
+							} //for () after insertion place found
+							emit dataChanged(index(qMin(static_cast<int>(row), first_modified_row), 0),
+															index(qMax(static_cast<int>(row), last_modified_row), 0));
+							return;
+						} //insert_here
+						break; //once the expected virtual index is found, if not the insertion place, stop and look for the next
 					}
-				}
-			} else {
-				for (auto &row_data : m_rowsMetadata) {
-					if (row_data.real_index != row) {
-						if (row_data.virt_index >= new_virt_index)
-							++(row_data.virt_index);
-					}
-				}
-			}
-		}
+				} //(other_row != row)
+			} //for()
+		} while (++next_virt_index < m_rowsMetadata.count());
 	}
 }
 
-inline const bool TPListModel::visible(const int row, const uint column) const
+inline const bool TPListModel::visible(const int row, const int column) const
 {
 	if (row >= 0) {
-		if (m_selectEntireRow || column == 0)
+		if (m_selectEntireRow || column == -1)
 			return m_rowsMetadata.at(row).visible.at(0);
 		else if (column < m_totalCols)
 			return m_rowsMetadata.at(row).visible.at(column);
@@ -448,10 +569,13 @@ inline const bool TPListModel::visible(const int row, const uint column) const
 	return false;
 }
 
-void TPListModel::setVisible(const uint row, bool visible, const uint column, const bool emit_signals)
+void TPListModel::setVisible(const uint row, bool visible, const int column, const bool emit_signals)
 {
 	const bool is_visible{TPListModel::visible(row, column)};
-	m_rowsMetadata[row].visible[column] = visible;
+	if (m_selectEntireRow || column == -1)
+		m_rowsMetadata[row].visible[0] = visible;
+	else
+		m_rowsMetadata[row].visible[column] = visible;
 	if (emit_signals)
 		emit dataChanged(index(row, m_selectEntireRow ? 0 : column), index(row, m_selectEntireRow ? m_totalCols : column),
 																								QList<int>{itemVisibleRole});
@@ -496,110 +620,6 @@ void TPListModel::setSelected(const int row, const bool selected, const uint vis
 			++m_nSelected;
 		emit selectedChanged();
 	}
-}
-
-void TPListModel::syncMetadata(const uint modeldata_count, const bool do_layout_signals)
-{
-	if (modeldata_count > 0) {
-		if (do_layout_signals)
-			emit layoutAboutToBeChanged();
-		m_rowsMetadata.reserve(modeldata_count);
-		for (uint row{0}; row < modeldata_count; ++row) {
-			st_rowData row_data;
-			row_data.real_index = row;
-			if (m_selectEntireRow) {
-				row_data.visible.append(true);
-				row_data.selected.append(false);
-			} else {
-				row_data.visible.reserve(m_totalCols);
-				row_data.selected.reserve(m_totalCols);
-				for (uint i{0}; i < m_totalCols; ++i) {
-					row_data.visible.append(true);
-					row_data.selected.append(false);
-				}
-			}
-			m_rowsMetadata.append(std::move(row_data));
-		}
-		if (m_enableFilters)
-			applyFilters(false);
-		if (m_sortDirection != NO_SORT)
-			sort(false);
-		if (m_searchField >= 0)
-			search(m_searchTerm, m_searchField);
-		setCurrentRow(0);
-		emit countChanged();
-		if (do_layout_signals)
-			emit layoutChanged();
-	}
-}
-
-void TPListModel::insertMetaData(int row)
-{
-	if (row < 0) {
-		if (row == -2)
-			row = m_rowsMetadata.count();
-		else
-			return; //invalid index
-	}
-	if (row < m_rowsMetadata.count()) {
-		for (auto &row_data : m_rowsMetadata | std::views::drop(row)) {
-			row_data.real_index++;
-			if (m_sortDirection == NO_SORT)
-				row_data.virt_index++;
-		}
-	}
-	st_rowData row_data;
-	row_data.real_index = row_data.virt_index = row;
-	bool visible{m_enableFilters ? itemShouldBeVisible(row) : true};
-	if (m_selectEntireRow) {
-		row_data.visible.append(visible);
-		row_data.selected.append(false);
-	} else {
-		row_data.visible.reserve(m_totalCols);
-		row_data.selected.reserve(m_totalCols);
-		for (uint i{0}; i < m_totalCols; ++i) {
-			row_data.visible.append(visible);
-			row_data.selected.append(false);
-		}
-	}
-	m_rowsMetadata.insert(row, std::move(row_data));
-
-	if (visible) {
-		if (m_sortDirection != NO_SORT)
-			insertSort(row);
-		if (m_searchField >= 0) {
-			if (m_selectEntireRow) {
-				m_rowsMetadata[row].visible[0] = visible = itemShouldRemainVisible(row, prepareSearchTerm(m_searchTerm));
-			} else {
-				for (uint i{0}; i < m_totalCols; ++i) {
-					if (i != m_searchField)
-						m_rowsMetadata[row].visible[i] = true;
-					else
-						m_rowsMetadata[row].visible[i] = itemShouldRemainVisible(row, prepareSearchTerm(m_searchTerm));
-				}
-			}
-		}
-		if (visible)
-			++m_nVisibleRows;
-	}
-	emit countChanged();
-	emit itemAdded(row);
-}
-
-void TPListModel::removeMetaData(const int row)
-{
-	const int start_virt_row{m_rowsMetadata.at(row).virt_index};
-	int start_row{row};
-	m_rowsMetadata.removeAt(row);
-	if (m_sortDirection != NO_SORT)
-		start_row = 0;
-	for (auto &row_data : m_rowsMetadata | std::views::drop(start_row)) {
-		row_data.real_index = start_row++;
-		if (row_data.virt_index >= start_virt_row)
-			--row_data.virt_index;
-	}
-	emit itemRemoved(row);
-	emit countChanged();
 }
 
 void TPListModel::setFiltersManager(TPFilterModel *filter_model, const bool use_default)
@@ -665,17 +685,18 @@ inline bool TPListModel::itemShouldRemainVisible(const uint real_row, const QStr
 	return visible;
 }
 
-inline void TPListModel::fromLastState(const uint real_row)
+inline void TPListModel::restoreState(const uint real_row, const int index)
 {
-	if (!m_rowsMetadata.at(real_row).past_states.isEmpty()) {
-		auto last_state{m_rowsMetadata.at(real_row).past_states.constLast()};
-		m_rowsMetadata[real_row].virt_index = last_state.first;
-		setVisible(real_row, last_state.second, m_selectEntireRow ? 0 : m_searchField);
-		m_rowsMetadata[real_row].past_states.pop_back();
+	if (index < 0 && !m_rowsMetadata.at(real_row).past_states.isEmpty()) {
+		auto state_index{m_rowsMetadata.at(real_row).past_states.count() + index};
+		auto state{m_rowsMetadata.at(real_row).past_states.at(state_index)};
+		m_rowsMetadata[real_row].virt_index = state.first;
+		setVisible(real_row, state.second, m_searchField);
+		m_rowsMetadata[real_row].past_states.resize(state_index);
 	}
 }
 
-inline void TPListModel::toLastState(const uint real_row, const bool add_new_state)
+inline void TPListModel::saveState(const uint real_row, const bool add_new_state)
 {
 	QPair<int,bool> last_state{m_rowsMetadata.at(real_row).virt_index, m_selectEntireRow
 					? m_rowsMetadata.at(real_row).visible[0] : m_rowsMetadata.at(real_row).visible[m_searchField]};
@@ -683,4 +704,66 @@ inline void TPListModel::toLastState(const uint real_row, const bool add_new_sta
 		m_rowsMetadata[real_row].past_states.append(std::move(last_state));
 	else
 		m_rowsMetadata[real_row].past_states.last() = last_state;
+}
+
+void TPListModel::syncNewItemStates(const uint real_row, const bool laststate_visible)
+{
+	//1 - Save the baseline state. i.e. how the item is before first search(character)
+	m_rowsMetadata[real_row].past_states.append(std::move(
+			QPair<int,bool>{m_rowsMetadata.at(real_row).virt_index, m_rowsMetadata.at(real_row).virt_index >= 0}));
+	//2 - Now that the baseline is saved, update the item to its current state
+	if (m_selectEntireRow) {
+		m_rowsMetadata[real_row].visible[0] = laststate_visible;
+	} else {
+		for (uint i{0}; i < m_totalCols; ++i)
+			m_rowsMetadata[real_row].visible[i] = i != m_searchField ? true : laststate_visible;
+	}
+	if (!laststate_visible)
+		m_rowsMetadata[real_row].virt_index = -1;
+
+	//3 - 3 means the minimum search term length(i.e. a quantity to be ignored, no states up untill then); +1 means
+	//ignore the first(baseline) state because we already set it up
+	const auto n_chars{m_searchTerm.length()};
+	const auto n_states{n_chars - (3 + 1)};
+	//4 - If the item's baseline state is to be hidden(because of a filter, then all subsequent states must reflect that
+	if (m_rowsMetadata.at(real_row).past_states.constFirst().first < 0) {
+		for (auto i{0}; i < n_states; ++i)
+			m_rowsMetadata[real_row].past_states.append(std::move(QPair<int,bool>{-1, false}));
+	} else {
+		int pos{3};
+		while ((pos + n_states) < n_chars) {
+			const QStringList &words_list{prepareSearchTerm(m_searchTerm.first(pos))};
+			if (itemShouldRemainVisible(real_row, words_list)) { //visible
+				if (m_sortDirection == NO_SORT)
+					m_rowsMetadata[real_row].past_states.append(std::move(QPair<int,bool>{real_row, true}));
+				else
+					//5 - the other item's state index never accounted for this new item, so they need to be updated
+					alterStates(real_row, pos);
+			} else { //not visible
+				m_rowsMetadata[real_row].past_states.append(std::move(QPair<int,bool>{-1, false}));
+			}
+			pos++;
+		};
+	}
+}
+
+void TPListModel::alterStates(const uint new_item_row, uint state_index)
+{
+	const QString &data_value{dataValue(new_item_row, m_sortField)};
+	auto new_virt_index{0};
+	for (auto other_row{0}; other_row < m_rowsMetadata.count(); ++other_row) {
+		if (new_item_row != other_row && visible(other_row)) {
+			const auto res{compareStrings(data_value, dataValue(other_row, m_sortField))};
+			const bool insert_here{m_sortDirection == SORT_DOWN ? res <= 0 : res > 0};
+			if (insert_here) {
+				m_rowsMetadata[new_item_row].past_states.append(std::move(QPair<int,bool>{new_virt_index, true}));
+				for (; other_row < m_rowsMetadata.count(); ++other_row) {
+					if (other_row != new_item_row && m_rowsMetadata.at(other_row).past_states.at(state_index).first >= new_virt_index)
+						m_rowsMetadata[other_row].past_states[state_index].first++;
+				}
+				return;
+			}
+			++new_virt_index;
+		}
+	}
 }

@@ -13,7 +13,7 @@ import "./WorkoutElements"
 
 TPPage {
 	id: workoutPage
-	image: ":/images/backgrounds/backimage-workout.jpg"
+	imageSource: ":/images/backgrounds/backimage-workout.jpg"
 	backgroundOpacity: 0.6
 	objectName: "workoutPage"
 

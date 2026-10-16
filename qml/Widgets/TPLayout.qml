@@ -18,7 +18,7 @@ Item {
 		let _item;
 		switch (type) {
 		case TPMessage.AT_BUTTON:
-			_component = Qt.createComponent("TpQml.Widgets", TPButton);
+			_component = Qt.createComponent("TpQml.Widgets", TPButton2);
 			_item = _component.createObject(_control, { text: label });
 			_item.buttonClicked.connect(function(btn_id) { execAction(index, btn_id); });
 			break;
@@ -55,6 +55,8 @@ Item {
 			else
 				item.anchors.top = top;
 			item.anchors.horizontalCenter = horizontalCenter;
+			if (item.width >= width * 0.9)
+				item.width = width * 0.9;
 			_row_width[_row] = item.width;
 		} else {
 			if (item.width + _row_width[_row] <= width * 0.95) { //this item fits on the current row
@@ -96,7 +98,7 @@ Item {
 			_row_width.push(0);
 			++_row;
 			if (index < total_items)
-				height += item.height;
+				height += item.height + 5;
 		}
 		item.anchors.margins = 5;
 	} //function addItem

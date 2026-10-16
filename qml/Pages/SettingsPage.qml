@@ -13,7 +13,7 @@ import TpQml.User
 TPPage {
 	id: settingsPage
 	objectName: "settingsPage"
-	image: AppSettings.settingsBackground
+	imageSource: AppSettings.settingsBackground
 	backgroundOpacity: 0.6
 	implicitWidth: AppSettings.pageWidth
 	implicitHeight: AppSettings.pageHeight
