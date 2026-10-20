@@ -27,6 +27,13 @@ DBMesocyclesModel::DBMesocyclesModel(QObject *parent)
 	: QObject{parent}
 {
 	connect(appTr(), &TranslationClass::applicationLanguageChanged, this, &DBMesocyclesModel::labelChanged);
+	int view_index{0};
+	if (appUserModel()->isClient(0)) {
+		m_mesosHomePageModel[MT_MESO_FROM_COACH] = new HomePageMesoModel{this, MT_MESO_FROM_COACH, view_index++};
+		m_mesosHomePageModel[MT_MESO_FOR_SELF] = new HomePageMesoModel{this, MT_MESO_FOR_SELF, view_index++};
+	}
+	if (appUserModel()->isCoach(0))
+		m_mesosHomePageModel[MT_MESO_FOR_CLIENT] = new HomePageMesoModel{this, MT_MESO_FOR_CLIENT, view_index};
 	getAllMesocycles();
 }
 
@@ -100,11 +107,13 @@ void DBMesocyclesModel::getMesoCalendarPage(const uint meso_idx)
 	mesoManager(meso_idx)->getCalendarPage();
 }
 
-HomePageMesoModel *DBMesocyclesModel::homePageViewModel(const int type) const
+HomePageMesoModel *DBMesocyclesModel::homePageViewModelViaIndex(const int view_index) const
 {
-	for (uint i{0}; i < MT_TYPE_COUNT; ++i) {
-		if (m_mesosHomePageModel[i] && m_mesosHomePageModel[i]->type() == type)
-			return m_mesosHomePageModel[i];
+	if (view_index >= 0) {
+		for (uint i{MT_MESO_FROM_COACH}; i < MT_TYPE_COUNT; ++i) {
+			if (m_mesosHomePageModel[i] && m_mesosHomePageModel[i]->viewIndex() == view_index)
+				return m_mesosHomePageModel[i];
+		}
 	}
 	return nullptr;
 }
@@ -121,14 +130,12 @@ int DBMesocyclesModel::currentMesosView() const
 	return meso_type >= 0 ? appSettings()->getCustomValue(mesosViewIdxSetting, meso_type).toInt() : -1;
 }
 
-void DBMesocyclesModel::setCurrentMesosView(const int view_index, const bool save)
+void DBMesocyclesModel::setCurrentMesosView(const int index, const bool save)
 {
-	HomePageMesoModel *view_model{homePageViewModelViaIndex(view_index)};
-	if (!view_model) {
-		m_mesosHomePageModel[view_index] = new HomePageMesoModel{this, view_index};
-		view_model->syncMetadata(count());
-	}
+	HomePageMesoModel *view_model{homePageViewModelViaIndex(index)};
 	if (view_model) {
+		if (view_model->count() == 0)
+			view_model->syncMetadata(count());
 		setWorkingCalendar(view_model->currentMesoIdx());
 		if (save)
 			appSettings()->setCustomValue(mesosViewIdxSetting, view_model->type());

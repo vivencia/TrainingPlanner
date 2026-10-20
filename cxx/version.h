@@ -1,3 +1,3 @@
 #pragma once
-#define TP_APP_VERSION "20261016"
-#define TP_APP_BUILD "331"
+#define TP_APP_VERSION "20261020"
+#define TP_APP_BUILD "454"

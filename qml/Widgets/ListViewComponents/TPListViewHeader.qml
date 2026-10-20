@@ -13,11 +13,11 @@ TPBackRec {
 	property bool showSearch: true
 	property bool showSort: true
 	property bool showSelectionOptions: true
+	property bool collapsed: false
 
 //private:
 	readonly property TPListModel listModel: tpListView.listModel
 	property int _margins: 5
-	property bool _collapsed: true
 	property int _control_height
 
 	Component.onCompleted: changeControlHeight();
@@ -34,7 +34,7 @@ TPBackRec {
 
 		TPImage {
 			id: imgExpand
-			source: _control._collapsed ? "fold-up.png" : "fold-down.png"
+			source: _control.collapsed ? "fold-up.png" : "fold-down.png"
 			width: AppSettings.itemSmallHeight
 			height: width
 
@@ -48,7 +48,7 @@ TPBackRec {
 			z: 1
 			anchors.fill: parent
 			onClicked: {
-				_control._collapsed = !_control._collapsed;
+				_control.collapsed = !_control.collapsed;
 				_control.changeControlHeight();
 			}
 		}
@@ -70,7 +70,7 @@ TPBackRec {
 		model: _control.listModel.fieldsNames
 		specialIndex: 0
 		currentIndex: _control.listModel.sortField
-		visible: _control._collapsed && _control.showSort
+		visible: _control.collapsed && _control.showSort
 		width: parent.width * 0.3
 		onItemActivated: (real_index, index, value) => {
 			_control.listModel.sortField = real_index;
@@ -96,7 +96,7 @@ TPBackRec {
 		imageHeight: AppSettings.itemSmallHeight
 		width: 2*imageHeight + 5
 		height: imageHeight
-		visible: _control._collapsed && _control.showSort
+		visible: _control.collapsed && _control.showSort
 		enabled: _control.listModel.sortField !== -1
 		onChecked: (check) => {
 			if (check)
@@ -118,7 +118,7 @@ TPBackRec {
 		imageHeight: AppSettings.itemSmallHeight
 		width: 2*imageHeight + 5
 		height: imageHeight
-		visible: _control._collapsed && _control.showSort
+		visible: _control.collapsed && _control.showSort
 		enabled: _control.listModel.sortField !== -1
 		onChecked: (check) => {
 			if (check)
@@ -140,7 +140,7 @@ TPBackRec {
 		isChecked: _control.listModel.enableFilters
 		image: "filter.png"
 		imageHeight: AppSettings.itemSmallHeight
-		visible: _control._collapsed && _control.showFilter
+		visible: _control.collapsed && _control.showFilter
 		width: parent.width * 0.35
 		onButtonClicked: (btn_id) => _control.listModel.showFiltersDialog();
 		onChecked: (check) => _control.listModel.enableFilters = check;
@@ -158,7 +158,7 @@ TPBackRec {
 		showClearTextButton: true
 		showSearchIcon: true
 		maximumLength: Math.ceil(width/AppSettings.fontSize)
-		visible: _control._collapsed && _control.showSearch
+		visible: _control.collapsed && _control.showSearch
 
 		anchors {
 			top: _control.showFilter ? btnFilter.bottom : (_control.showSort ? cboSortFields.bottom : lblHeader.bottom)
@@ -174,7 +174,7 @@ TPBackRec {
 		id: chkEnableSelection
 		text: qsTr("Selectable")
 		boxType: TPRadioButtonOrCheckBox.TP_CHECKBOX
-		visible: _control._collapsed && _control.showSelectionOptions
+		visible: _control.collapsed && _control.showSelectionOptions
 		width: _control.width / 2 - 5
 		onChecked: (check) => _control.tpListView.items_selectable = check;
 
@@ -189,7 +189,7 @@ TPBackRec {
 		id: chkSelectAll
 		text: qsTr("Select All")
 		boxType: TPRadioButtonOrCheckBox.TP_CHECKBOX
-		visible: _control._collapsed && _control.showSelectionOptions
+		visible: _control.collapsed && _control.showSelectionOptions
 		enabled: _control.enabled && chkEnableSelection.isChecked
 		onClicked: _control.listModel.selectAll();
 
@@ -203,7 +203,7 @@ TPBackRec {
 
 	function changeControlHeight(): void {
 		let ret = AppSettings.itemDefaultHeight;
-		if (_collapsed) {
+		if (collapsed) {
 			if (showSearch)
 				ret += 2*_margins + AppSettings.itemDefaultHeight;
 			if (showFilter|| showSort)

@@ -622,22 +622,22 @@
         <translation>Coach/Treinador: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="579"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="586"/>
         <source>Extra workout is set to happen on </source>
         <translation>Treino extra está marcado para acontecer em </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="663"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="670"/>
         <source>Exercises Program</source>
         <translation>Programa de Exercícios</translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="782"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="789"/>
         <source>Training program </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="782"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="789"/>
         <source> from </source>
         <translation type="unfinished"></translation>
     </message>
@@ -832,7 +832,7 @@
 <context>
     <name>HomePage</name>
     <message>
-        <location filename="../qml/Pages/HomePage.qml" line="39"/>
+        <location filename="../qml/Pages/HomePage.qml" line="36"/>
         <source>Training Organizer</source>
         <translation>Organizador de Treinos</translation>
     </message>
@@ -840,31 +840,31 @@
 <context>
     <name>HomePageMesoModel</name>
     <message>
-        <location filename="../cxx/homepagemesomodel.cpp" line="121"/>
+        <location filename="../cxx/homepagemesomodel.cpp" line="122"/>
         <source>Programs Overview</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/homepagemesomodel.cpp" line="145"/>
-        <location filename="../cxx/homepagemesomodel.cpp" line="148"/>
-        <location filename="../cxx/homepagemesomodel.cpp" line="151"/>
-        <location filename="../cxx/homepagemesomodel.cpp" line="154"/>
-        <location filename="../cxx/homepagemesomodel.cpp" line="157"/>
+        <location filename="../cxx/homepagemesomodel.cpp" line="146"/>
+        <location filename="../cxx/homepagemesomodel.cpp" line="149"/>
+        <location filename="../cxx/homepagemesomodel.cpp" line="152"/>
+        <location filename="../cxx/homepagemesomodel.cpp" line="155"/>
+        <location filename="../cxx/homepagemesomodel.cpp" line="158"/>
         <source>Not set</source>
         <translation>Não definido</translation>
     </message>
     <message>
-        <location filename="../cxx/homepagemesomodel.cpp" line="98"/>
+        <location filename="../cxx/homepagemesomodel.cpp" line="99"/>
         <source>My Coaches&apos;s Programs</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/homepagemesomodel.cpp" line="99"/>
+        <location filename="../cxx/homepagemesomodel.cpp" line="100"/>
         <source>My Own Programs</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/homepagemesomodel.cpp" line="100"/>
+        <location filename="../cxx/homepagemesomodel.cpp" line="101"/>
         <source>My Clients&apos; Programs</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1166,52 +1166,52 @@
 <context>
     <name>MesosList</name>
     <message>
-        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="137"/>
+        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="93"/>
         <source>View Program</source>
         <translation>Ver Programa</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="157"/>
+        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="113"/>
         <source>Calendar</source>
         <translation>Calendário</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="199"/>
+        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="155"/>
         <source>Export</source>
         <translation type="unfinished">Exportar</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="244"/>
+        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="200"/>
         <source>Remove Program</source>
         <translation>Remover Programa</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="261"/>
+        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="217"/>
         <source>Remove </source>
         <translation type="unfinished">Remover </translation>
     </message>
     <message>
-        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="262"/>
+        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="218"/>
         <source>This action cannot be undone.</source>
         <translation type="unfinished">Esta ação não pode ser desfeita.</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="359"/>
+        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="315"/>
         <source>New Training Program</source>
         <translation>Novo Programa de Treinamento</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="372"/>
+        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="328"/>
         <source>Import program from file</source>
         <translation>Importar programa de um arquivo</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="384"/>
+        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="340"/>
         <source>Today&apos;s workout</source>
         <translation>Treino de hoje</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="178"/>
+        <location filename="../qml/Pages/HomePageElements/MesosList.qml" line="134"/>
         <source>Exercises Sheet</source>
         <translation>Planilha de exercícios</translation>
     </message>
@@ -3173,44 +3173,44 @@ Vamos iniciar criando seu perfil de usuário.</translation>
         <translation>Importar</translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="508"/>
+        <location filename="../cxx/usersmanager.cpp" line="503"/>
         <source>All your clients will be removed and cannot be automatically retrieved</source>
         <translation>Todos seus clientes serão removidos e não poderão ser automaticamente recuperados</translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="620"/>
+        <location filename="../cxx/usersmanager.cpp" line="615"/>
         <source>New user</source>
         <translation>Novo usuário</translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="711"/>
+        <location filename="../cxx/usersmanager.cpp" line="706"/>
         <source>Coach registration</source>
         <translation>Registro de treinador</translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="1415"/>
+        <location filename="../cxx/usersmanager.cpp" line="1410"/>
         <source>Online account removed</source>
         <translation>Conta online removida</translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="1415"/>
+        <location filename="../cxx/usersmanager.cpp" line="1410"/>
         <source>Failed to remove online account</source>
         <translation>Falha ao remover conta online</translation>
     </message>
     <message>
+        <location filename="../cxx/usersmanager.cpp" line="1052"/>
         <location filename="../cxx/usersmanager.cpp" line="1057"/>
-        <location filename="../cxx/usersmanager.cpp" line="1062"/>
         <source>User switching error</source>
         <translation>Erro ao alternar usuário</translation>
     </message>
     <message>
+        <location filename="../cxx/usersmanager.cpp" line="1052"/>
         <location filename="../cxx/usersmanager.cpp" line="1057"/>
-        <location filename="../cxx/usersmanager.cpp" line="1062"/>
         <source>Could not download files for user </source>
         <translation>Não foi possível baixar os arquivos do usuário </translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="770"/>
+        <location filename="../cxx/usersmanager.cpp" line="765"/>
         <source>Coach contacting</source>
         <translation>Contato com o treinador</translation>
     </message>
@@ -3220,232 +3220,232 @@ Vamos iniciar criando seu perfil de usuário.</translation>
         <translation>Rede TP</translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="188"/>
-        <location filename="../cxx/usersmanager.cpp" line="225"/>
+        <location filename="../cxx/usersmanager.cpp" line="183"/>
+        <location filename="../cxx/usersmanager.cpp" line="220"/>
         <source>Yes</source>
         <translation>Sim</translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="188"/>
-        <location filename="../cxx/usersmanager.cpp" line="225"/>
-        <location filename="../cxx/usersmanager.cpp" line="509"/>
-        <location filename="../cxx/usersmanager.cpp" line="525"/>
-        <location filename="../cxx/usersmanager.cpp" line="1342"/>
-        <location filename="../cxx/usersmanager.cpp" line="1374"/>
+        <location filename="../cxx/usersmanager.cpp" line="183"/>
+        <location filename="../cxx/usersmanager.cpp" line="220"/>
+        <location filename="../cxx/usersmanager.cpp" line="504"/>
+        <location filename="../cxx/usersmanager.cpp" line="520"/>
+        <location filename="../cxx/usersmanager.cpp" line="1337"/>
+        <location filename="../cxx/usersmanager.cpp" line="1369"/>
         <source>No</source>
         <translation>Não</translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="508"/>
+        <location filename="../cxx/usersmanager.cpp" line="503"/>
         <source>Revoke coach status?</source>
         <translation>Rescindir condição de treinador?</translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="509"/>
-        <location filename="../cxx/usersmanager.cpp" line="525"/>
-        <location filename="../cxx/usersmanager.cpp" line="1342"/>
-        <location filename="../cxx/usersmanager.cpp" line="1373"/>
+        <location filename="../cxx/usersmanager.cpp" line="504"/>
+        <location filename="../cxx/usersmanager.cpp" line="520"/>
+        <location filename="../cxx/usersmanager.cpp" line="1337"/>
+        <location filename="../cxx/usersmanager.cpp" line="1368"/>
         <source>Revoke</source>
         <translation>Rescindir</translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="523"/>
+        <location filename="../cxx/usersmanager.cpp" line="518"/>
         <source>Revoke client status?</source>
         <translation>Rescindir condição de cliente?</translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="523"/>
+        <location filename="../cxx/usersmanager.cpp" line="518"/>
         <source>All your coaches will be removed and cannot be automatically retrieved</source>
         <translation>Todos os seus treinadores serão removidos e não poderão ser automaticamente re-incluídos</translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="1431"/>
+        <location filename="../cxx/usersmanager.cpp" line="1426"/>
         <source>New coach!</source>
         <translation>Novo treinador!</translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="1431"/>
-        <location filename="../cxx/usersmanager.cpp" line="1462"/>
+        <location filename="../cxx/usersmanager.cpp" line="1426"/>
+        <location filename="../cxx/usersmanager.cpp" line="1457"/>
         <source>Now that </source>
         <translation>Agora que </translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="1432"/>
+        <location filename="../cxx/usersmanager.cpp" line="1427"/>
         <source> is your coach, you can send them messages using the Star Button on the Home screen</source>
         <translation> é seu(sua) treinador(a), você pode enviar-lhe mensagens utilizando o botão Estrela na página inicial</translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="603"/>
+        <location filename="../cxx/usersmanager.cpp" line="598"/>
         <source>User removal</source>
         <translation>Remoção de usuário</translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="224"/>
+        <location filename="../cxx/usersmanager.cpp" line="219"/>
         <source>Remove user?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="224"/>
+        <location filename="../cxx/usersmanager.cpp" line="219"/>
         <source>All the data for %1 will be deleted</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="289"/>
+        <location filename="../cxx/usersmanager.cpp" line="284"/>
         <source>TP app password</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="293"/>
+        <location filename="../cxx/usersmanager.cpp" line="288"/>
         <source>New password</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="297"/>
+        <location filename="../cxx/usersmanager.cpp" line="292"/>
         <source>Change password</source>
         <translation type="unfinished">Mudar senha</translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="303"/>
+        <location filename="../cxx/usersmanager.cpp" line="298"/>
         <source></source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="327"/>
+        <location filename="../cxx/usersmanager.cpp" line="322"/>
         <source>The provided password is not your TP App password</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="352"/>
+        <location filename="../cxx/usersmanager.cpp" line="347"/>
         <source>Success!</source>
         <translation type="unfinished">Sucesso!</translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="352"/>
+        <location filename="../cxx/usersmanager.cpp" line="347"/>
         <source>New user password saved</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="356"/>
+        <location filename="../cxx/usersmanager.cpp" line="351"/>
         <source>Error! Password not set</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="371"/>
+        <location filename="../cxx/usersmanager.cpp" line="366"/>
         <source>Unable to change password because the current password entered is wrong</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="392"/>
+        <location filename="../cxx/usersmanager.cpp" line="387"/>
         <source>Error! Password not changed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="662"/>
+        <location filename="../cxx/usersmanager.cpp" line="657"/>
         <source>Attempting to import user data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="770"/>
+        <location filename="../cxx/usersmanager.cpp" line="765"/>
         <source>Online coach contacted </source>
         <translation>Treinador contactado </translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="850"/>
+        <location filename="../cxx/usersmanager.cpp" line="845"/>
         <source>Coach Information</source>
         <translation>Informação do Treinador</translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="850"/>
+        <location filename="../cxx/usersmanager.cpp" line="845"/>
         <source>Client Information</source>
         <translation>Informação do Cliente</translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="1017"/>
+        <location filename="../cxx/usersmanager.cpp" line="1012"/>
         <source>Login failed</source>
         <translation>Login falhou</translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="1017"/>
+        <location filename="../cxx/usersmanager.cpp" line="1012"/>
         <source>Please, type in your TraininPlanner user password</source>
         <translation>Por favor, digite sua senha do aplicativo TrainingPlanner</translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="1462"/>
+        <location filename="../cxx/usersmanager.cpp" line="1457"/>
         <source>New client!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="1463"/>
+        <location filename="../cxx/usersmanager.cpp" line="1458"/>
         <source> is your client, you can send them messages using the Star Button on the Home screen</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="1493"/>
-        <location filename="../cxx/usersmanager.cpp" line="1516"/>
+        <location filename="../cxx/usersmanager.cpp" line="1488"/>
+        <location filename="../cxx/usersmanager.cpp" line="1511"/>
         <source>Male</source>
         <translation>Homen</translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="1493"/>
+        <location filename="../cxx/usersmanager.cpp" line="1488"/>
         <source>Female</source>
         <translation>Mulher</translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="1501"/>
-        <location filename="../cxx/usersmanager.cpp" line="1522"/>
+        <location filename="../cxx/usersmanager.cpp" line="1496"/>
+        <location filename="../cxx/usersmanager.cpp" line="1517"/>
         <source>User</source>
         <translation>Usuário</translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="1502"/>
-        <location filename="../cxx/usersmanager.cpp" line="1524"/>
+        <location filename="../cxx/usersmanager.cpp" line="1497"/>
+        <location filename="../cxx/usersmanager.cpp" line="1519"/>
         <source>Coach</source>
         <translation>Treinador</translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="1503"/>
-        <location filename="../cxx/usersmanager.cpp" line="1526"/>
+        <location filename="../cxx/usersmanager.cpp" line="1498"/>
+        <location filename="../cxx/usersmanager.cpp" line="1521"/>
         <source>Client</source>
         <translation>Cliente</translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="1504"/>
+        <location filename="../cxx/usersmanager.cpp" line="1499"/>
         <source>Coach and Client</source>
         <translation>Treinador e Cliente</translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="181"/>
+        <location filename="../cxx/usersmanager.cpp" line="176"/>
         <source>If you remove your online account you&apos;ll not be able to log onto it anymore from any device.</source>
         <translation>Se você remover sua conta online, você não poderá entrar nela por mais nenhum outro aparelho.</translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="183"/>
+        <location filename="../cxx/usersmanager.cpp" line="178"/>
         <source>You&apos;ll not have access to your online client(s) anymore.</source>
         <translation>Você não mais terá acesso ao(s) seu(s) cliente(s) online.</translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="185"/>
+        <location filename="../cxx/usersmanager.cpp" line="180"/>
         <source>You&apos;ll not have access to your online coache(s) anymore.</source>
         <translation>Você não mais terá acesso ao(s) seu(s) coach(es) online.</translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="187"/>
+        <location filename="../cxx/usersmanager.cpp" line="182"/>
         <source>Remove online account?</source>
         <translation>Remover conta online?</translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="1339"/>
-        <location filename="../cxx/usersmanager.cpp" line="1370"/>
+        <location filename="../cxx/usersmanager.cpp" line="1334"/>
+        <location filename="../cxx/usersmanager.cpp" line="1365"/>
         <source> - unavailable</source>
         <translation> - indisponível</translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="1339"/>
+        <location filename="../cxx/usersmanager.cpp" line="1334"/>
         <source>The user is no longer available as your client. If you need to know more about this, contact them to find out the reason. Remove the user from your list of clients?</source>
         <translation>O usuário não está mais disponível como seu cliente. Se deseja saber mais sobre isso, contacte-o para obter uma resposta. Remover o usuário da sua lista de clientes?</translation>
     </message>
     <message>
-        <location filename="../cxx/usersmanager.cpp" line="1371"/>
+        <location filename="../cxx/usersmanager.cpp" line="1366"/>
         <source>The user is no longer available as your coach. If you need to know more about this, contact them to find out the reason. Remove the user from your list of coaches?</source>
         <translation>O usuário não está mais disponível como seu treinador. Se deseja saber mais sobre isso, contacte-o para obter uma resposta. Remover o usuário da sua lista de treinadores?</translation>
     </message>

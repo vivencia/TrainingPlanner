@@ -26,7 +26,7 @@ TPPopup {
 	show_minimize_button: false
 	showCloseButton: false
 
-	onMouseItemClicked: (mouse) => {
+	onMouseItemClicked: {
 		if (_minimized)
 			titleBar.restore();
 		else

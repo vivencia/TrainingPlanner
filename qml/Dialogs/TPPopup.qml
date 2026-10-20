@@ -25,7 +25,7 @@ Popup {
 	signal keyboardNumberPressed(key1: int, key2: int);
 	signal keyboardEnterPressed();
 	signal closeActionExeced(btn_id: int);
-	signal mouseItemClicked(mouse: MouseEvent);
+	signal mouseItemClicked();
 	signal popupSizeChanged(w_ratio: real, h_ratio: real);
 
 //protected:
@@ -58,7 +58,7 @@ Popup {
 	property Item reference_widget: null
 	property TPBackRec backgroundRec
 	property TitleBar titleBar: null
-	property TPMouseArea mouse_area: null
+	property TPPointHandler mouse_area: null
 
 	enum ShowBehavior { PARENT_PAGE_ACTIVE, ALWAYS_VISIBLE }
 	enum CloseActionType { DEFAULT_ACTION = 0, BTN_CLOSE = -1, SWIPE = -2, BACK_KEY = -3 }
@@ -296,7 +296,7 @@ Popup {
 
 	function createMouseArea(): void {
 		if (mouseItem && !mouse_area) {
-			let component = Qt.createComponent("TpQml.Widgets", TPMouseArea, Qt.Asynchronous);
+			let component = Qt.createComponent("TpQml.Widgets", TPPointHandler, Qt.Asynchronous);
 			function finishCreation() {
 				mouse_area = component.createObject(_control.mouseItem, { enabled: _control.enabled,
 						movableWidget: _control, canSlide: _control.canSlideToClose,
@@ -342,26 +342,26 @@ Popup {
 			AppSettings.setCustomValue(configFieldName + ".pos", Qt.point(x, y));
 	}
 
-	function mouseAreaPressed(mouse: MouseEvent): void {
+	function mouseAreaPressed(): void {
 		ItemManager.appPagesManager.raisePopup(_control);
 	}
 
 	function mouseAreaSlide(side: int): void {
 		_use_alternate_transition = true;
 		switch (side) {
-		case TPMouseArea.MA_LEFT:
+		case TPPointHandler.MA_LEFT:
 			alternateCloseTransition.finalPos = -width;
 			alternateCloseTransition.property_name = "x";
 			break;
-		case TPMouseArea.MA_RIGHT:
+		case TPPointHandler.MA_RIGHT:
 			alternateCloseTransition.finalPos = AppSettings.windowWidth;
 			alternateCloseTransition.property_name = "x";
 			break;
-		case TPMouseArea.MA_TOP:
+		case TPPointHandler.MA_TOP:
 			alternateCloseTransition.finalPos = 0;
 			alternateCloseTransition.property_name = "y";
 			break;
-		case TPMouseArea.MA_BOTTOM:
+		case TPPointHandler.MA_BOTTOM:
 			alternateCloseTransition.finalPos = AppSettings.windowHeight;
 			alternateCloseTransition.property_name = "y";
 			break;

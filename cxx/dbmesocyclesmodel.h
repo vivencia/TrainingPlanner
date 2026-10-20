@@ -107,10 +107,10 @@ public:
 	Q_INVOKABLE void getExercisesPlannerPage(const uint meso_idx);
 	Q_INVOKABLE void getMesoCalendarPage(const uint meso_idx);
 	Q_INVOKABLE inline void startTodaysWorkout(const uint meso_idx) { openSpecificWorkout(meso_idx, QDate::currentDate()); }
-	Q_INVOKABLE HomePageMesoModel *homePageViewModel(const int type) const;
-	Q_INVOKABLE inline HomePageMesoModel *homePageViewModelViaIndex(const int view_index) const { return m_mesosHomePageModel[view_index]; }
+	Q_INVOKABLE inline HomePageMesoModel *homePageViewModel(const int type) const { return m_mesosHomePageModel[type]; }
+	Q_INVOKABLE HomePageMesoModel *homePageViewModelViaIndex(const int index) const;
 	Q_INVOKABLE int currentMesosView() const;
-	Q_INVOKABLE void setCurrentMesosView(const int view_index, const bool save = true	);
+	Q_INVOKABLE void setCurrentMesosView(const int index, const bool save = true	);
 
 	bool isMesoOK(const int meso_idx) const;
 	inline bool isNameOK(const uint meso_idx) const { return isBitSet(m_metadata.at(meso_idx), MD_NAME_OK); }

@@ -1,7 +1,6 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Controls
 
 import TpQml
 import TpQml.Widgets
@@ -12,10 +11,8 @@ TPPage {
 	objectName: "homePage"
 	imageSource: ":/images/backgrounds/backimage-home.jpg"
 
-	property bool loadMesosFromCoaches: false
-	property bool loadMesosForSelf: false
-	property bool loadMesosForClients: false
-	property MesocyclesModel mesoModel: null
+//public:
+	property MesocyclesModel mesoModel
 
 	header: TPToolBar {
 		bottomPadding: 20
@@ -56,9 +53,6 @@ TPPage {
 		id: mesosView
 		currentIndex: homePage.mesoModel.currentMesosView()
 		interactive: AppUserModel.mainUserIsCoach && AppUserModel.mainUserIsClient
-		indicatorsColors: [homePage.mesoModel.homePageViewModelViaIndex(0).backgroundColor,
-										homePage.mesoModel.homePageViewModelViaIndex(1).backgroundColor,
-										homePage.mesoModel.homePageViewModelViaIndex(2).backgroundColor]
 		indicatorBottomMargin: height * (Qt.platform.os !== "android" ? 0.2 : 0.25)
 		anchors.fill: parent
 		onCurrentIndexChanged: homePage.mesoModel.setCurrentMesosView(currentIndex);
@@ -68,37 +62,31 @@ TPPage {
 			active: homePage.mesoModel.homePageViewModel(MesocyclesModel.MT_MESO_FROM_COACH) !== null
 			asynchronous: true
 
-			property int index
-
 			sourceComponent: MesosList {
 				mesoFilteredModel: homePage.mesoModel.homePageViewModel(MesocyclesModel.MT_MESO_FROM_COACH)
-				index: mesosFromCoachesLoader.index
+				Component.onCompleted: mesosView.indicatorsColors.push(mesoFilteredModel.backgroundColor);
 			}
 		}
 
 		Loader {
 			id: mesosForSelfLoader
-			active: homePage.loadMesosForSelf
+			active: homePage.mesoModel.homePageViewModel(MesocyclesModel.MT_MESO_FOR_SELF) !== null
 			asynchronous: true
-
-			property int index
 
 			sourceComponent: MesosList {
 				mesoFilteredModel: homePage.mesoModel.homePageViewModel(MesocyclesModel.MT_MESO_FOR_SELF)
-				index: mesosForSelfLoader.index
+				Component.onCompleted: mesosView.indicatorsColors.push(mesoFilteredModel.backgroundColor);
 			}
 		}
 
 		Loader {
 			id: mesosForClientsLoader
-			active: homePage.loadMesosForClients
+			active: homePage.mesoModel.homePageViewModel(MesocyclesModel.MT_MESO_FOR_CLIENT) !== null
 			asynchronous: true
-
-			property int index
 
 			sourceComponent: MesosList {
 				mesoFilteredModel: homePage.mesoModel.homePageViewModel(MesocyclesModel.MT_MESO_FOR_CLIENT)
-				index: mesosForClientsLoader.index
+				Component.onCompleted: mesosView.indicatorsColors.push(mesoFilteredModel.backgroundColor);
 			}
 		}
 	} //TPSwipeView

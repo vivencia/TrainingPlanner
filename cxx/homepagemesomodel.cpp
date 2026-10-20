@@ -25,8 +25,9 @@ enum MesoRoleNames {
 
 using namespace QLiterals;
 
-HomePageMesoModel::HomePageMesoModel(DBMesocyclesModel *meso_model, const int type)
-	: TPListModel{meso_model, DBMesocyclesModel::MESO_TOTAL_FIELDS} , m_mesoModel{meso_model}, m_type{type}
+HomePageMesoModel::HomePageMesoModel(DBMesocyclesModel *meso_model, const int type, const int view_index)
+	: TPListModel{meso_model, DBMesocyclesModel::MESO_TOTAL_FIELDS},
+													m_mesoModel{meso_model}, m_type{type}, m_viewIndex{view_index}
 {
 	setParentPage(appItemManager()->appHomePage());
 	setFieldsNames();

@@ -53,7 +53,7 @@ TPPopup {
 		TPLabel {
 			id: lblTitle
 			text: _balloon.title
-			useBackground: !showTitleBar
+			useBackground: !_balloon.showTitleBar
 			horizontalAlignment: Text.AlignHCenter
 			visible: _balloon.title.length > 0
 			Layout.preferredWidth: _balloon.width - 10
@@ -174,9 +174,9 @@ TPPopup {
 	}
 
 	Connections {
-		target: mouse_area
+		target: _balloon.mouse_area
 		//won't be caught when a slide to close happen because the popup will disappear(close)
-		function onMouseReleased(mouse: MouseEvent): void {
+		function onMouseReleased(): void {
 			if (timer.paused) {
 				timer.paused = false;
 				timer.interval = 1;

@@ -34,56 +34,13 @@ Item {
 		parentPage:_control.mesoFilteredModel.parentPage as TPPage
 		spacing: 10
 		width: _control.width
-		height: calculatePreferredHeight()
+		height: Math.min(minimumHeight, _control.height) - lblTitle.height - 10
 
 		anchors {
 			top: lblTitle.bottom
 			left: parent.left
 			right: parent.right
 			margins: 5
-		}
-
-		readonly property int maxHeight: _control.height * 0.8 - lblTitle.height - 10
-
-		/** When homePage is loaded, mesoFilteredModel is probably loaded so no countChanged signal. When mesosListView is
-		  * completed, the delegates are not. So, the only way to resize the list upon start up is to wait for the appropriate
-		  * delegates to load (itemAtIndex() will not be null) before calculating the height. All of this is that so TPSwipeView
-		  * (or, indeed SwipeView for that matter) will have more space to swipe (other than the title label and the left/right
-		  * margins) when the list is not accupying the entire screen;
-		  **/
-		Timer {
-			id: waitForDelegatesTimer
-			interval: 100
-			onTriggered: mesosListView.height = mesosListView.calculatePreferredHeight();
-		}
-
-		Connections {
-			target: _control.mesoFilteredModel
-			function onCountChanged(): void {
-				mesosListView.height = mesosListView.calculatePreferredHeight();
-			}
-		}
-
-		function calculatePreferredHeight(): int {
-			if (_control.mesoFilteredModel.count > 0) {
-				let children_height = 0;
-				for (let i = 0; i < _control.mesoFilteredModel.count; ++i) {
-					let _item = itemAtIndex(i);
-					if (!_item) { //we know there has to be a delegate because model.count > 0, so we wait for it
-						waitForDelegatesTimer.start();
-						return 0;
-					} else {
-						if (children_height + _item.implicitHeight > maxHeight) {
-							children_height = maxHeight;
-							break;
-						} else {
-							children_height += _item.implicitHeight + 10;
-						}
-					}
-				}
-				return children_height;
-			}
-			return 0;
 		}
 
 		delegate: TPListViewDelegate {

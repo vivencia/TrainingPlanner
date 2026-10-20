@@ -7,7 +7,6 @@ MouseArea {
 	propagateComposedEvents: true
 	pressAndHoldInterval: canSlide ? 100 : 300
 	enabled: enabledCondition
-	z: 1
 	anchors.fill: movingWidget
 
 //public:
@@ -95,11 +94,11 @@ MouseArea {
 
 	Component.onCompleted: {
 		if (movableIsPopup) {
-			onPressAndHold.connect(pressAndHold_popup);
-			onPositionChanged.connect(positionChanged_popup);
+			_control.pressAndHold.connect(pressAndHold_popup);
+			_control.positionChanged.connect(positionChanged_popup);
 		} else {
-			onPressAndHold.connect(pressAndHold_item);
-			onPositionChanged.connect(positionChanged_item);
+			_control.pressAndHold.connect(pressAndHold_item);
+			_control.positionChanged.connect(positionChanged_item);
 		}
 	}
 

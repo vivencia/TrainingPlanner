@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 
@@ -48,11 +50,12 @@ Item {
 		movableWidgetCanGoOutsideBounds: true
 		lockMovingToXAxis: true
 		enabledCondition: _control.interactive
-		z: -1
+		//z: -1
+
 		onMovingFinished: (x,y) => {
 			if ((x >= -_control._snapping_threshold && x <= _control._snapping_threshold)
 					|| (x >= width - _control._snapping_threshold && x <= width + _control._snapping_threshold))
-				snapCurrentItemIntoPosition();
+				_control.snapCurrentItemIntoPosition();
 		}
 	}
 
@@ -69,7 +72,7 @@ Item {
 		}
 		z: 2
 
-		delegate: TPButton {
+		delegate: TPButton2 {
 			id: delegate
 			text: String(delegate.index + 1)
 			clickId: index
@@ -95,9 +98,9 @@ Item {
 	function setCurrentIndex(index: int): void {
 		currentIndex = index;
 		if (currentItem)
-			currentItem.onXChanged.disconnect(moveItems);
+			currentItem.xChanged.disconnect(moveItems);
 		currentItem = _children[currentIndex];
-		currentItem.onXChanged.connect(moveItems);
+		currentItem.xChanged.connect(moveItems);
 		arrangePositions();
 
 		if (currentIndex === 0) {
@@ -122,7 +125,7 @@ Item {
 				_children.push(children[_i]);
 				_children[_x].width = width - 2 * workMargins;
 				_children[_x].height = height;
-				_children[_x].index = _x++;
+				_x++;
 			}
 		}
 		setCurrentIndex(currentIndex);
@@ -162,7 +165,7 @@ Item {
 	}
 
 	function switchToNextItem(): void {
-		currentItem.onXChanged.disconnect(moveItems);
+		currentItem.xChanged.disconnect(moveItems);
 		for (let i = 0; i < _children.length; ++i) {
 			if (mouseArea.xMovingDirection === TPMouseArea.MA_LEFT) {
 				if (_item_cur_pos[i] === _leftmost_pos)
@@ -180,7 +183,7 @@ Item {
 		}
 		_ignore_x_change = false;
 		currentItem = _children[currentIndex];
-		currentItem.onXChanged.connect(moveItems);
+		currentItem.xChanged.connect(moveItems);
 		currentItem.x = workMargins;
 		mouseArea.enabled = true;
 	}
