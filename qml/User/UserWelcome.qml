@@ -5,10 +5,10 @@ import TpQml.Widgets
 
 TPLabel {
 	id: lblMain
-	text: qsTr("Welcome to the Training Planner app!\nLet's first setup the application by creating your profile.")
+	text: qsTr("Welcome to the Training Planner app!<br>Let's first setup the application by creating your profile.")
 	horizontalAlignment: Text.AlignJustify
 	font: AppGlobals.extraLargeFont
-	wrapMode: Text.WordWrap
+	singleLine: false
 
 	readonly property bool bReady: true
 

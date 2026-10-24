@@ -22,21 +22,18 @@ Rectangle {
 	property bool listCoaches: false
 	property bool multipleSelection: false
 	property bool showFilterInput: false
-	property alias model: workingModel
-	property alias anySelected: workingModel.anySelected
-	property alias currentRow: workingModel.currentRow
-	property alias count: workingModel.count
+	property alias model: _control.workingModel
+	property alias anySelected: _control.workingModel.anySelected
+	property alias selectedUser: _control.workingModel.selectedUser
+	property alias currentRow: _control.workingModel.currentRow
+	property alias count: _control.workingModel.count
+	property alias identifier: _control.workingModel.identifier
 	property alias showHeader: listView.showHeader
 	property alias canSearch: listView.canSearch
 	property alias canSelectItems: listView.showHeader
 	property alias canSort: listView.canSort
 
-	signal itemSelected(int userIdx)
-	signal buttonClicked()
-	signal itemButtonClicked(int userIdx)
-
-	UserInfoModel {
-		id: workingModel
+	property UserInfoModel workingModel: UserInfoModel {
 		showClients: _control.listClients
 		showCoaches: _control.listCoaches
 		showConfirmed: _control.listConfirmed
@@ -49,11 +46,15 @@ Rectangle {
 		}
 	}
 
+	signal itemSelected(int userIdx)
+	signal buttonClicked()
+	signal itemButtonClicked(int userIdx)
+
 	TPLabel {
 		id: lblEmptyList
 		text: updateText();
 		horizontalAlignment: Text.AlignHCenter
-		visible: workingModel.count === 0
+		visible: _control.workingModel.count === 0
 
 		anchors {
 			top: _control.top
@@ -84,12 +85,12 @@ Rectangle {
 
 	TPListView {
 		id: listView
-		listModel: workingModel
+		listModel: _control.workingModel
 		parentPage: _control.parentPage
 		canFilter: false
 		height: button.visible ? _control.height - button.height - 5 : _control.height
 		enabled: _control.enabled
-		visible: workingModel.count > 0
+		visible: _control.workingModel.count > 0
 
 		anchors {
 			top: _control.top
@@ -98,52 +99,64 @@ Rectangle {
 			margins: 2
 		}
 
-		delegate: TPRadioButtonOrCheckBox {
+		delegate: TPListViewDelegate {
 			id: delegate
-			text: name
-			boxType: _control.multipleSelection ? TPRadioButtonOrCheckBox.TP_CHECKBOX : TPRadioButtonOrCheckBox.TP_NONEBOX
-			image: avatar
-			backColor: delegate.selected ? AppSettings.entrySelectedColor :
-							(delegate.index % 2 === 0 ? AppSettings.listEntryColor1 : AppSettings.listEntryColor2)
-			opacity: delegate.selected ? 1 : 0.8
-			border.color: delegate.selected ? AppSettings.fontColor : "transparent"
-			visible: itemVisible
-			width: listView.width
-			height: itemVisible ? AppSettings.itemDefaultHeight : 0
+			_index: index
+			_itemVisible: itemVisible
+			tpListView: listView
 
 			required property int index
+			required property bool itemVisible
+			required property bool selected
+
 			required property string name
 			required property string avatar
-			required property bool selected
-			required property bool itemVisible
 
-			onClicked: _control.selectItem(delegate.index);
+			itemContent: TPRadioButtonOrCheckBox {
+				text: delegate.name
+				boxType: _control.multipleSelection ? TPRadioButtonOrCheckBox.TP_CHECKBOX : TPRadioButtonOrCheckBox.TP_NONEBOX
+				image: delegate.avatar
+				enableCheckOutsideIndicator: false
+				backColor: delegate.selected ? AppSettings.entrySelectedColor :
+								(delegate.index % 2 === 0 ? AppSettings.listEntryColor1 : AppSettings.listEntryColor2)
+				opacity: delegate.selected ? 1 : 0.8
+				border.color: delegate.selected ? AppSettings.fontColor : "transparent"
+				visible: delegate.itemVisible
+				width: listView.width
+				height: delegate.itemVisible ? preferredHeight : 0
 
-			Loader {
-				id: itemButtonLoader
-				active: _control.perItemButtonString.length > 0 && delegate.selected
-				asynchronous: true
-				width: delegate.width * 0.3
-				height: AppSettings.itemDefaultHeight * 0.9
-				anchors {
-					verticalCenter: parent.verticalCenter
-					right: parent.right
+				onChecked: (check) => {
+					_control.workingModel.setIsSelected(delegate.index, check);
+					if (check)
+						_control.itemSelected(delegate.index);
 				}
 
-				sourceComponent: TPButton {
-					text: _control.perItemButtonString
-					rounded: false
-					onClicked: _control.itemButtonClicked(workingModel.userIdx(delegate.index));
+				Loader {
+					id: itemButtonLoader
+					active: _control.perItemButtonString.length > 0 && delegate.index === _control.workingModel.currentRow
+					asynchronous: true
+					width: delegate.width * 0.3
+					height: AppSettings.itemDefaultHeight * 0.9
+					anchors {
+						verticalCenter: parent.verticalCenter
+						right: parent.right
+					}
+
+					sourceComponent: TPButton2 {
+						text: _control.perItemButtonString
+						rounded: false
+						onClicked: _control.itemButtonClicked(_control.workingModel.realRow(delegate.index));
+					}
 				}
-			}
-		} //ItemDelegate
+			} //itemContent
+		} //delegate
 	}
 
-	TPButton {
+	TPButton2 {
 		id: button
 		text: _control.buttonString
 		rounded: false
-		enabled: workingModel.currentRow >= 0
+		enabled: _control.workingModel.currentRow >= 0
 		visible: _control.buttonString.length > 0
 
 		onClicked: _control.buttonClicked();
@@ -153,40 +166,5 @@ Rectangle {
 			bottomMargin: 5
 			horizontalCenter: _control.horizontalCenter
 		}
-	}
-
-	function selectItem(index: int): void {
-		if (index >= 0 && index < workingModel.count) {
-			if (multipleSelection) {
-				const is_selected = workingModel.isSelected(index);
-				workingModel.setSelected(index, !is_selected);
-				workingModel.currentRow = index;
-			}
-			else {
-				workingModel.setSelected(workingModel.currentRow, false);
-				workingModel.setSelected(index, true);
-				workingModel.currentRow = index;
-				itemSelected(workingModel.currentUserIdx);
-			}
-		}
-		else
-			itemSelected(-1);
-	}
-
-	function applyFilter(filter: string): void {
-		workingModel.applyFilter(filter, AppUserModel.NAME);
-	}
-
-	function selectedUsers(): list<string> {
-		return workingModel.selectedUsers();
-	}
-
-	function setSelectedUsers(users: list<string>): void {
-		workingModel.setSelectedUsers(users);
-	}
-
-	function reset(): void {
-		workingModel.applyFilter("");
-		workingModel.clearSelection();
 	}
 }

@@ -39,58 +39,77 @@ UserInfoListModel::UserInfoListModel(QObject *parent) : TPListModel{parent, User
 	roleToString(category)
 	roleToString(avatar)
 
+	setObjectName("UserInfoListModel");
 	setFilterField(UsersManager::CATEGORY);
 	setFiltersManager(nullptr, true);
+	setPersistentFilterCompareFunction(true, UsersManager::CATEGORY, QString{}, [this] (bool positive, int row) -> bool {
+		bool ret{false};
+		if (row > 0) {
+			if (m_showClients)
+				ret = positive ? appUserModel()->isClient(row) : !appUserModel()->isClient(row);
+			if (m_showCoaches)
+				ret |= positive ? appUserModel()->isCoach(row) : !appUserModel()->isCoach(row);
+			if (m_showConfirmed)
+				ret |= positive ? appUserModel()->isConfirmed(row) : !appUserModel()->isConfirmed(row);
+			if (m_showAvailable)
+				ret |= positive ? appUserModel()->isAvailable(row) : !appUserModel()->isAvailable(row);
+		}
+		return ret;
+	});
 	m_modelData = &appUserModel()->m_usersData;
+	syncMetadata(appUserModel()->userCount());
+	setRemoveTitleFunction([this] (const QList<int>& remove_rows) -> QString {
+		if (remove_rows.count() == 1) {
+			const auto user_idx{remove_rows.constFirst()};
+			if (appUserModel()->isConfirmed(user_idx))
+				return QString{tr("Remove ") % appUserModel()->userName(user_idx) % '?'};
+			else
+				return QString{tr("Decline ") % appUserModel()->userName(user_idx) % '?'};
+		} else {
+			return tr("Proceed with the following actions?");
+		}
+	});
+
+	setRemoveMessageFunction([this] (const QList<int>& remove_rows) -> QString {
+		auto epithet = [] (const int user_idx, const bool plural) -> QString {
+			return appUserModel()->isClient(user_idx) ? (!plural ? tr("client") : tr("client(s)"))
+													  : (!plural ? tr("coach") : tr("coach(es)"));
+		};
+
+		if (remove_rows.count() == 1) {
+			const auto user_idx{remove_rows.constFirst()};
+			if (appUserModel()->isConfirmed(user_idx))
+				return tr("The %1 will be notified of your decision, "
+									"but might still contact you unless you block them").arg(epithet(user_idx, false));
+			else
+				return tr("The %1 will receive your reply, "
+						"but might choose to send another request unless you block them").arg(epithet(user_idx, false));
+		} else {
+			QString message;
+			bool has_decline{false}, has_remove{false};
+			for (const auto &user_idx : remove_rows) {
+				if (appUserModel()->isConfirmed(user_idx)) {
+					message += QString{tr("Remove ") % appUserModel()->userName(user_idx) % "?<br>"_L1};
+					has_remove = true;
+				} else {
+					message += QString{tr("Decline ") % appUserModel()->userName(user_idx) % "?<br>"_L1};
+					has_decline = true;
+				}
+				if (has_remove) {
+					message += tr("The removed %1 will be notified of your decision, "
+									"but might still contact you unless you block them").arg(epithet(user_idx, true));
+					if (has_decline)
+						message += "<br>"_L1;
+				}
+				if (has_decline)
+					message += tr("The declined client(s) will receive your reply, "
+						"but might choose to send another request unless you block them").arg(epithet(user_idx, true));
+			}
+			return message;
+		}
+	});
 	connect(appUserModel(), &UsersManager::userModified, this, &UserInfoListModel::userModified);
-}
-
-void UserInfoListModel::setShowClients(const bool show)
-{
-	if (show != m_showClients) {
-		m_showClients = show;
-		if (show)
-			filtersManager()->addValue(UsersManager::CATEGORY, UsersManager::UC_CLIENT);
-		else
-			filtersManager()->delValue(UsersManager::CATEGORY, UsersManager::UC_CLIENT);
-		emit showClientsChanged();
-	}
-}
-
-void UserInfoListModel::setShowCoaches(const bool show)
-{
-	if (show != m_showCoaches) {
-		m_showCoaches = show;
-		if (show)
-			filtersManager()->addValue(UsersManager::CATEGORY, UsersManager::UC_COACH);
-		else
-			filtersManager()->delValue(UsersManager::CATEGORY, UsersManager::UC_COACH);
-		emit showCoachesChanged();
-	}
-}
-
-void UserInfoListModel::setShowConfirmed(const bool show)
-{
-	if (show != m_showConfirmed) {
-		m_showConfirmed = show;
-		if (show)
-			filtersManager()->addValue(UsersManager::CATEGORY, UsersManager::UC_CONFIRMED);
-		else
-			filtersManager()->delValue(UsersManager::CATEGORY, UsersManager::UC_CONFIRMED);
-		emit showConfirmedChanged();
-	}
-}
-
-void UserInfoListModel::setShowAvailable(const bool show)
-{
-	if (show != m_showAvailable) {
-		m_showAvailable = show;
-		if (show)
-			filtersManager()->addValue(UsersManager::CATEGORY, UsersManager::UC_YET_AVAILABLE);
-		else
-			filtersManager()->delValue(UsersManager::CATEGORY, UsersManager::UC_YET_AVAILABLE);
-		emit showClientsChanged();
-	}
+	connect(this, &TPListModel::currentRowChanged, this, &UserInfoListModel::selectedUserChanged);
 }
 
 const QString &UserInfoListModel::dataValue(const uint real_row, const uint column) const
@@ -144,8 +163,10 @@ void UserInfoListModel::userModified(const uint user_idx, const uint field)
 {
 	switch (field) {
 	case USER_MODIFIED_SWITCHING:
-		emit layoutAboutToBeChanged();
-		emit layoutChanged();
+		beginResetModel();
+		clear();
+		endResetModel();
+		syncMetadata(appUserModel()->userCount(), true);
 		break;
 	case USER_MODIFIED_CREATED:
 	case USER_MODIFIED_IMPORTED:
@@ -160,4 +181,3 @@ void UserInfoListModel::userModified(const uint user_idx, const uint field)
 		emit dataChanged(index(user_idx, field), index(user_idx, field));
 	}
 }
-

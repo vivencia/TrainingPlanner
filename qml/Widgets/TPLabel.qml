@@ -20,6 +20,7 @@ Label {
 	leftInset: 0
 	rightInset: 0
 	padding: 0
+	height: visible ? preferredHeight() : 0
 
 	property string fontColor: AppSettings.fontColor
 	property bool singleLine: true
@@ -70,16 +71,17 @@ Label {
 	}
 
 	function preferredHeight(): int {
-		if (singleLine)
+		if (singleLine) {
 			return fm.height * 1.05;
-
-		const br_w = fm.boundingRect(text).width;
-		let ph = 0;
-		if (width < br_w) {
-			ph = Math.floor(fm.height * (fm.boundingRect(text).width / width));
-			return ph;
 		} else {
-			return Math.max(fm.height, height);
+			const br_w = fm.boundingRect(text).width;
+			let ph = 0;
+			if (width < br_w) {
+				ph = Math.floor(fm.height * (fm.boundingRect(text).width / width));
+				return ph;
+			} else {
+				return fm.height * 1.05;
+			}
 		}
 	}
 }

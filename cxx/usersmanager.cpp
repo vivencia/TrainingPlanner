@@ -486,9 +486,9 @@ void UsersManager::setUserCategory(const int user_idx, const int new_category, c
 		emit userCategoryChanged(user_idx);
 	};
 
-	if (!has_category && add)
+	if (!has_category && add) {
 		change_category(category | new_category);
-	else {
+	} else {
 		if (new_category == UC_COACH && isCoach(0) && (category & UC_HAS_CLIENT)) {
 			auto conn{std::make_shared<QMetaObject::Connection>()};
 			*conn = connect(appItemManager(), &QmlItemManager::generalMessagesPopupClicked, this,
@@ -503,8 +503,7 @@ void UsersManager::setUserCategory(const int user_idx, const int new_category, c
 				{tr("Revoke coach status?"), tr("All your clients will be removed and cannot be automatically retrieved")}
 				, record_separator)), Qt::AlignCenter, std::move("question_"_L1), 0, std::move(tr("Revoke")), std::move(tr("No")));
 			return;
-		}
-		else if (new_category == UC_CLIENT && isClient(0) && (category & UC_HAS_COACH)) {
+		} else if (new_category == UC_CLIENT && isClient(0) && (category & UC_HAS_COACH)) {
 			auto conn{std::make_shared<QMetaObject::Connection>()};
 			*conn = connect(appItemManager(), &QmlItemManager::generalMessagesPopupClicked, this,
 												[this,conn,category,change_category] (const uint8_t button) mutable {
@@ -519,9 +518,9 @@ void UsersManager::setUserCategory(const int user_idx, const int new_category, c
 				"cannot be automatically retrieved")}, record_separator)), Qt::AlignCenter, std::move("question_"_L1)
 				, 0, std::move(tr("Revoke")), std::move(tr("No")));
 			return;
-		}
-		else
+		} else {
 			change_category(category & ~new_category);
+		}
 	}
 }
 

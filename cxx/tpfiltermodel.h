@@ -48,6 +48,8 @@ public:
 	inline void setDataAcquisitionFunc(const std::function<QPair<bool,QString>(uint index, uint column)> &func) { m_getData = func; }
 
 	inline const QStringList &filters() const { return m_filters; }
+	inline const QPair<int,QString> &positiveFilter() const { return m_positiveFilter; }
+	inline const QPair<int,QString> &negativeFilter() const { return m_negativeFilter; }
 
 	Q_INVOKABLE void clearSelection();
 	Q_INVOKABLE void selectAll();
@@ -69,7 +71,12 @@ public:
 			}
 		}
 	}
-
+	//a positive filter is a permament value that should be matched for equality
+	void setPositiveFilter(const uint filter_index, const QString &value);
+	void clearPositiveFilter(const QString &value);
+	//a negative filter is a permament value that should be matched for inequality
+	void setNegativeFilter(const uint filter_index, const QString &value);
+	void clearNegativeFilter(const QString &value);
 	void initFilterValues(const uint field);
 
 	inline int rowCount(const QModelIndex & = QModelIndex{}) const override final { return count(); }
@@ -95,6 +102,7 @@ private:
 	QList<st_Filter> m_filterElements;
 	QList<std::function<QString()>> m_filterDisplayStringFuncs;
 	QStringList m_filters;
+	QPair<int,QString> m_positiveFilter{-1, QString{}}, m_negativeFilter{-1, QString{}};
 	std::function<QPair<bool,QString>(uint index, uint column)> m_getData{nullptr};
 	QHash<int, QByteArray> m_roleNames;
 

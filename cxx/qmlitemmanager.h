@@ -40,8 +40,6 @@ public:
 	};
 	Q_ENUM(PASSWORD_DIALOG_MODE)
 
-	static constexpr QLatin1StringView logOriginQmlEngine{"QML Engine"};
-
 	Q_DISABLE_COPY_MOVE(QmlItemManager)
 	explicit QmlItemManager();
 	void startQmlEngine(QQmlApplicationEngine *qml_engine);
@@ -89,8 +87,8 @@ public:
 				const PASSWORD_DIALOG_MODE mode = DM_GET_PASSWORD, const std::optional<bool> store_passwd = std::nullopt);
 	void showImportWorkoutDialog(DBExercisesModel *new_workout, QQuickItem *parent_page, DBCalendarModel *cal_model,
 																							const QChar &split_letter);
-	void showRemoveDialog(const int requestid, QQuickItem *parent_page, const QString &identifier, const QString &title,
-																									const QString &message);
+	void showRemoveDialog(const int requestid, QQuickItem *parent_page, const QString &identifier,
+																		const QString &title, const QString &message);
 
 signals:
 	void selectedExerciseFromSimpleExercisesList(QQuickItem *parentPage);

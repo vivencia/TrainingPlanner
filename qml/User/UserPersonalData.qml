@@ -7,7 +7,6 @@ import QtQuick.Layouts
 import TpQml
 import TpQml.Widgets
 import TpQml.Pages
-import TpQml.User
 import TpQml.Dialogs
 
 ColumnLayout {
@@ -55,8 +54,6 @@ ColumnLayout {
 
 		property bool bTextChanged: false
 
-		onEnterOrReturnKeyPressed: passwordControl.forceActiveFocus();
-
 		onEditingFinished: {
 			if (bTextChanged && userPersonalModule.bNameOK) {
 				AppUserModel.setUserName(userPersonalModule.userIdx, text);
@@ -76,7 +73,7 @@ ColumnLayout {
 			}
 		}
 
-		TPButton {
+		TPButton2 {
 			image: "chat_"
 			width: AppSettings.itemDefaultHeight
 			height: width
@@ -89,11 +86,11 @@ ColumnLayout {
 				verticalCenter: txtName.verticalCenter
 			}
 
-			onClicked: AppMessages.openChat(userPersonalModule.userIdx);
+			onButtonClicked: AppMessages.openChat(userPersonalModule.userIdx);
 		}
 	}
 
-	TPButton {
+	TPButton2 {
 		id: btnChangePassword
 		text: AppUserModel.mainUserConfigured ? qsTr("Change password") : qsTr("Set password")
 		rounded: false
@@ -101,7 +98,8 @@ ColumnLayout {
 		visible: userPersonalModule.userIdx === 0
 		Layout.alignment: Qt.AlignHCenter
 
-		onClicked: AppUserModel.showPasswordDialogForMainUser(ItemManager.DM_CHANGE_PASSWORD, parentPage);
+		onButtonClicked: AppUserModel.showPasswordDialogForMainUser(ItemManager.DM_CHANGE_PASSWORD,
+																					userPersonalModule.parentPage);
 	}
 
 	TPLabel {
@@ -163,7 +161,7 @@ ColumnLayout {
 			id: chkMale
 			text: qsTr("Male")
 			actionable: userPersonalModule.userIdx === 0
-			checked: AppUserModel.sex(userPersonalModule.userIdx) === 'M'
+			isChecked: AppUserModel.sex(userPersonalModule.userIdx) === 'M'
 			buttonGroup: sexGroup
 			width: parent.width/2
 
@@ -172,10 +170,12 @@ ColumnLayout {
 				verticalCenter: parent.verticalCenter
 			}
 
-			onClicked: {
-				if (AppUserModel.sex(userPersonalModule.userIdx) !== 'M')
-					AppUserModel.setSex(userPersonalModule.userIdx, true);
-				userPersonalModule.bSexOK = true;
+			onChecked: (check) => {
+				if (check) {
+					if (AppUserModel.sex(userPersonalModule.userIdx) !== 'M')
+						AppUserModel.setSex(userPersonalModule.userIdx, true);
+					userPersonalModule.bSexOK = true;
+				}
 			}
 		}
 
@@ -183,14 +183,16 @@ ColumnLayout {
 			id: chkFemale
 			text: qsTr("Female")
 			actionable: userPersonalModule.userIdx === 0
-			checked: AppUserModel.sex(userPersonalModule.userIdx) === 'F'
+			isChecked: AppUserModel.sex(userPersonalModule.userIdx) === 'F'
 			buttonGroup: sexGroup
 			width: parent.width / 2
 
-			onClicked: {
-				if (AppUserModel.sex(userPersonalModule.userIdx) !== 'F')
-					AppUserModel.setSex(userPersonalModule.userIdx, false);
-				userPersonalModule.bSexOK = true;
+			onChecked: (check) => {
+				if (check) {
+					if (AppUserModel.sex(userPersonalModule.userIdx) !== 'F')
+						AppUserModel.setSex(userPersonalModule.userIdx, false);
+					userPersonalModule.bSexOK = true;
+				}
 			}
 
 			anchors {
@@ -205,10 +207,10 @@ ColumnLayout {
 		text: AppUserModel.onlineAccountUserLabel
 		actionable: userPersonalModule.userIdx === 0
 		boxType: TPRadioButtonOrCheckBox.TP_CHECKBOX
-		checked: AppUserModel.onlineAccount
+		isChecked: AppUserModel.onlineAccount
 		Layout.maximumWidth: userPersonalModule.width * 0.7
 
-		onClicked: AppUserModel.onlineAccount = checked;
+		onChecked: (check) => AppUserModel.onlineAccount = isChecked;
 
 		TPButton {
 			image: "question.png"
@@ -257,10 +259,10 @@ ColumnLayout {
 		txtBirthdate.text = AppUserModel.birthDateFancy(userPersonalModule.userIdx);
 		bBirthDateOK = AppUserModel.birthYear(userPersonalModule.userIdx) >= 1940;
 		const sex = AppUserModel.sex(userPersonalModule.userIdx);
-		chkMale.checked = sex === 0;
-		chkFemale.checked = sex === 1;
+		chkMale.isChecked = sex === 0;
+		chkFemale.isChecked = sex === 1;
 		bSexOK = sex <= 1;
-		chkOnlineUser.checked = AppUserModel.onlineAccount
+		chkOnlineUser.isChecked = AppUserModel.onlineAccount;
 	}
 
 	function userPasswordOK(password_ok: bool): void {
@@ -270,8 +272,6 @@ ColumnLayout {
 	function focusOnFirstField(): void {
 		if (!bNameOK)
 			txtName.forceActiveFocus();
-		else if (!bPasswordOK)
-			passwordControl.forceActiveFocus();
 		else if (!bBirthDateOK)
 			caldlg.open();
 		else

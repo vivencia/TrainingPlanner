@@ -296,8 +296,8 @@ void QmlItemManager::showLogs()
 				m_logsDialog = m_logsDialogComponent->create(appQmlEngine()->rootContext());
 #ifndef QT_NO_DEBUG
 				if (!m_logsDialog) {
-					log(TPLogs::LT_DEBUG, logOriginQmlEngine,
-						std::move("Component creation failed"_L1), std::move(m_logsDialogComponent->errorString()));
+					log(TPLogs::LT_DEBUG, TPLogs::originQml, std::move("Component creation failed"_L1),
+																	std::move(m_logsDialogComponent->errorString()));
 					return;
 				}
 #endif
@@ -634,8 +634,8 @@ void QmlItemManager::showRemoveDialog(const int requestid, QQuickItem *parent_pa
 				m_removeDialog = m_removeDialogComponent->create(appQmlEngine()->rootContext());
 #ifndef QT_NO_DEBUG
 				if (!m_removeDialog) {
-					appItemManager()->log(TPLogs::LT_DEBUG, QmlItemManager::logOriginQmlEngine,
-						std::move("Component creation failed"_L1), std::move(m_removeDialogComponent->errorString()));
+					appItemManager()->log(TPLogs::LT_DEBUG, TPLogs::originQml, std::move("Component creation failed"_L1),
+																	std::move(m_removeDialogComponent->errorString()));
 					return;
 				}
 #endif
@@ -701,13 +701,13 @@ void QmlItemManager::generalMessagesPopupModallyClosed()
 bool QmlItemManager::runTests()
 {
 	//log(TPLogs::LT_DEBUG, "TPListModel Tests"_L1, std::move("Title %1"_L1.arg(QString::number(11))), std::move("Message %1"_L1.arg(QString::number(11))));
-	for (uint i{0}; i < 10; ++i) {
-		log(TPLogs::LT_DEBUG, "TPListModel Tests"_L1, i % 2 == 0 ? std::move("Title %1"_L1.arg(QString::number(i)))
-			: std::move("Header %1"_L1.arg(QString::number(i))), i % 2 == 0 ? std::move("Message %1"_L1.arg(QString::number(10-i)))
-			: std::move("Content %1"_L1.arg(QString::number(10-i))));
+	//for (uint i{0}; i < 10; ++i) {
+	//	log(TPLogs::LT_DEBUG, "TPListModel Tests"_L1, i % 2 == 0 ? std::move("Title %1"_L1.arg(QString::number(i)))
+	//		: std::move("Header %1"_L1.arg(QString::number(i))), i % 2 == 0 ? std::move("Message %1"_L1.arg(QString::number(10-i)))
+	//		: std::move("Content %1"_L1.arg(QString::number(10-i))));
 		//log(TPLogs::LT_DEBUG, "TPListModel Tests"_L1, std::move("Title %1"_L1.arg(QString::number(i))),
 		//					std::move("Message %1"_L1.arg(QString::number(10-i))));
-	}
+	//}
 	return false;
 }
 #endif

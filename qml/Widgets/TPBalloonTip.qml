@@ -106,7 +106,7 @@ TPPopup {
 
 			readonly property int empty_space: (_balloon.width - btn1.width - btn2.width) / 3
 
-			TPButton {
+			TPButton2 {
 				id: btn1
 				text: _balloon.button1Text
 				visible: _balloon.button1Text.length > 0
@@ -119,7 +119,7 @@ TPPopup {
 				}
 			}
 
-			TPButton {
+			TPButton2 {
 				id: btn2
 				text: _balloon.button2Text
 				visible: _balloon.button2Text.length > 0

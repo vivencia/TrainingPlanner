@@ -64,7 +64,7 @@ ColumnLayout {
 			}
 		} //txtPhone
 
-		TPButton {
+		TPButton2 {
 			id: btnWhatsApp
 			image: "whatsapp"
 			enabled: userContactModule.userIdx !== 0 && userContactModule.bPhoneOK
@@ -74,7 +74,7 @@ ColumnLayout {
 			onClicked: AppOsInterface.startMessagingApp(AppUserModel.phoneNumber(userContactModule.userIdx), "WhatsApp");
 		}
 
-		TPButton {
+		TPButton2 {
 			id: btnTelegram
 			image: "telegram"
 			enabled: userContactModule.userIdx !== 0 && userContactModule.bPhoneOK
@@ -123,7 +123,7 @@ ColumnLayout {
 				txtSocial.forceActiveFocus();
 		}
 
-		TPButton {
+		TPButton2 {
 			image: "email"
 			enabled: userContactModule.userIdx !== 0 && userContactModule.bEmailOK
 			width: AppSettings.itemDefaultHeight
@@ -183,7 +183,7 @@ ColumnLayout {
 			ToolTip.visible = !userContactModule.bSocialOK;
 		}
 
-		TPButton {
+		TPButton2 {
 			id: btnOpenSocialMedia
 			image: "openurl"
 			enabled: userContactModule.bSocialOK

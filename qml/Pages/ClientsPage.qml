@@ -39,12 +39,12 @@ TPPage {
 
 		TPTabButton {
 			text: qsTr("Clients")
-			onClicked: clientsList.selectItem(clientsList.currentRow >= 0 ? clientsList.currentRow : 0);
+			onClicked: clientsPage.userIdx = clientsList.selectedUser;
 		}
 
 		TPTabButton {
 			text: qsTr("Pending requests")
-			onClicked: pendingClientsList.selectItem(pendingClientsList.currentRow >= 0 ? pendingClientsList.currentRow : 0);
+			onClicked: clientsPage.userIdx = pendingClientsList.selectedUser;
 		}
 
 		anchors {
@@ -55,8 +55,6 @@ TPPage {
 			right: parent.right
 			rightMargin: 5
 		}
-
-		Component.onCompleted: clientsList.selectItem(clientsList.currentRow);
 	}
 
 	StackLayout {
@@ -78,12 +76,11 @@ TPPage {
 			listClients: true
 			listCoaches: false
 			listConfirmed: true
-			buttonString: qsTr("Remove")
+			parentPage: clientsPage
 			Layout.fillWidth: true
 			Layout.preferredHeight: parent.height * 0.3
 
-			onItemSelected: (userIdx) => clientsPage.userIdx = userIdx;
-			onButtonClicked: clientsPage.showRemoveMessage(false);
+			onItemSelected: (user_idx) => clientsPage.userIdx = user_idx;
 		} //TPCoachesAndClientsList: clientsList
 
 		Item {
@@ -93,6 +90,7 @@ TPPage {
 			TPCoachesAndClientsList {
 				id: pendingClientsList
 				listClients: true
+				parentPage: clientsPage
 				height: parent.height - AppSettings.itemDefaultHeight - 5
 
 				anchors {
@@ -103,7 +101,7 @@ TPPage {
 					rightMargin: 5
 				}
 
-				onItemSelected: (userIdx) => clientsPage.userIdx = userIdx;
+				onItemSelected: (user_idx) => clientsPage.userIdx = user_idx;
 			} //TPCoachesAndClientsList: pendingClientsList
 
 			RowLayout {
@@ -117,19 +115,19 @@ TPPage {
 					right: parent.right
 				}
 
-				TPButton {
+				TPButton2 {
 					text: qsTr("Accept")
 					rounded: false
 					Layout.alignment: Qt.AlignCenter
 
-					onClicked: AppUserModel.acceptUser(pendingClientsList.selectedUserIdx);
+					onClicked: AppUserModel.acceptUser(pendingClientsList.workingModel.selectedUser);
 				}
-				TPButton {
+				TPButton2 {
 					text: qsTr("Decline")
 					rounded: false
 					Layout.alignment: Qt.AlignCenter
 
-					onClicked: clientsPage.showRemoveMessage(true);
+					onClicked: pendingClientsList.workingModel.removeCurrent();
 				}
 			}
 		}//Item
@@ -175,45 +173,5 @@ TPPage {
 				Layout.preferredWidth: AppSettings.pageWidth - 20
 			}
 		}
-	}
-
-	Loader {
-		id: removeUserDlgLoader
-		asynchronous: true
-		active: false
-
-		property bool decline
-		property TPBalloonTip _remove_dlg
-
-		sourceComponent: TPBalloonTip {
-			parentPage: clientsPage
-			image: "remove"
-			keepAbove: true
-			message: removeUserDlgLoader.decline ?
-				 qsTr("The client will receive your reply, but might choose to send another request unless you block them") :
-				qsTr("The client will be notified of your decision, but might still contact you unless you block them")
-			onButton1Clicked: clientsPage.removeOrDecline(removeUserDlgLoader.decline);
-			onClosed: removeUserDlgLoader.active = false;
-			Component.onCompleted: removeUserDlgLoader._remove_dlg = this;
-		}
-
-		onLoaded: {
-			if (decline)
-				_remove_dlg.title = qsTr("Decline ") + AppUserModel.userName(pendingClientsList.selectedUserIdx) + "?";
-			else
-				_remove_dlg.title = qsTr("Remove ") + AppUserModel.userName(clientsList.selectedUserIdx) + "?";
-			_remove_dlg.tpOpen();
-		}
-	}
-	function showRemoveMessage(decline: bool): void {
-		removeUserDlgLoader.decline = decline;
-		removeUserDlgLoader.active = true;
-	}
-
-	function removeOrDecline(decline: bool) {
-		if (!decline)
-			AppUserModel.removeUser(clientsPage.userIdx);
-		else
-			AppUserModel.rejectUser(pendingClientsList.selectedUserIdx);
 	}
 }

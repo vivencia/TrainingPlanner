@@ -121,7 +121,7 @@ void TPListModel::showFiltersDialog()
 									{"title"_L1, tr("Filter Logs")}}, appQmlEngine()->rootContext());
 #ifndef QT_NO_DEBUG
 				if (!m_filtersDialog) {
-					appItemManager()->log(TPLogs::LT_DEBUG, QmlItemManager::logOriginQmlEngine,
+					appItemManager()->log(TPLogs::LT_DEBUG, TPLogs::originQml,
 						std::move("Component creation failed"_L1), std::move(m_filtersDialogComponent->errorString()));
 					return;
 				}
@@ -180,7 +180,7 @@ void TPListModel::applyFilters(const bool do_layout_signals)
 		return;
 	if (do_layout_signals)
 		emit layoutAboutToBeChanged();
-	if (m_enableFilters && !m_filters->filters().isEmpty()) {
+	if (m_filters->positiveFilter().first >= 0 || m_filters->negativeFilter().first >= 0 || !m_filters->filters().isEmpty()) {
 		int new_virt_index{0};
 		for (uint row{0}; row < m_rowsMetadata.count(); ++row) {
 			const bool visible{itemShouldBeVisible(row)};
@@ -334,36 +334,38 @@ bool TPListModel::askBeforeRemove() const
 
 void TPListModel::syncMetadata(const uint modeldata_count, const bool do_qml_signals)
 {
-	if (modeldata_count > 0) {
-		if (do_qml_signals)
-			beginResetModel();
-		m_rowsMetadata.reserve(modeldata_count);
-		for (uint row{0}; row < modeldata_count; ++row) {
-			st_rowData row_data;
-			row_data.real_index = row;
-			if (m_selectEntireRow) {
-				row_data.visible.append(true);
-				row_data.selected.append(false);
-			} else {
-				row_data.visible.reserve(m_totalCols);
-				row_data.selected.reserve(m_totalCols);
-				for (uint i{0}; i < m_totalCols; ++i) {
+	if (modeldata_count > m_rowsMetadata.count()) {
+		m_rowsMetadata.reserve(m_rowsMetadata.count() + modeldata_count);
+		if (do_qml_signals) {
+			beginInsertRows(QModelIndex{}, count(), count() + modeldata_count - 1);
+		} else {
+			for (uint row{0}; row < modeldata_count; ++row) {
+				st_rowData row_data;
+				row_data.real_index = row_data.virt_index = row;
+				if (m_selectEntireRow) {
 					row_data.visible.append(true);
 					row_data.selected.append(false);
+				} else {
+					row_data.visible.reserve(m_totalCols);
+					row_data.selected.reserve(m_totalCols);
+					for (uint i{0}; i < m_totalCols; ++i) {
+						row_data.visible.append(true);
+						row_data.selected.append(false);
+					}
 				}
+				m_rowsMetadata.append(std::move(row_data));
 			}
-			m_rowsMetadata.append(std::move(row_data));
+			if (m_hasPersistentFilters || m_enableFilters)
+				applyFilters(false);
+			if (m_sortDirection != NO_SORT)
+				sort(false);
+			if (m_searchTerm.length() > 3)
+				search(m_searchTerm, m_searchField);
 		}
-		if (m_enableFilters)
-			applyFilters(false);
-		if (m_sortDirection != NO_SORT)
-			sort(false);
-		if (m_searchTerm.length() > 3)
-			search(m_searchTerm, m_searchField);
 		setCurrentRow(0);
-		if (do_qml_signals)
-			endResetModel();
 		emit countChanged();
+		if (do_qml_signals)
+			endInsertRows();
 	}
 }
 
@@ -378,8 +380,8 @@ void TPListModel::insertMetaData(const int row)
 	}
 	st_rowData row_data;
 	row_data.real_index = row;
-	bool visible{m_enableFilters ? itemShouldBeVisible(row) : true};
-	row_data.virt_index = visible ? row : -1;
+	bool visible{m_hasPersistentFilters || m_enableFilters ? itemShouldBeVisible(row) : true};
+	row_data.virt_index = visible ? nextVirtualIndex() : -1;
 	if (m_selectEntireRow) {
 		row_data.visible.append(visible);
 		row_data.selected.append(false);
@@ -399,10 +401,13 @@ void TPListModel::insertMetaData(const int row)
 		visible = itemShouldRemainVisible(row, prepareSearchTerm(m_searchTerm));
 		syncNewItemStates(row, visible);
 	}
-	if (visible)
+	if (visible) {
 		++m_nVisibleRows;
-	else if (m_sortDirection != NO_SORT)
+		emit visibleCountChanged();
+	} else if (m_sortDirection != NO_SORT) {
 		emit dataChanged(index(row, 0), index(row, 0));
+	}
+	setCurrentRow(row_data.virt_index);
 	emit countChanged();
 	emit itemAdded(row);
 }
@@ -474,34 +479,51 @@ void TPListModel::remove(const bool from_qml, const bool bypass_confirmation)
 					}
 				}
 			});
+			const QString &title{!mf_removeTitle ? tr("Remove ") % m_identifier : mf_removeTitle(m_rowsToRemove)};
 			QString message;
-			if (m_removeField < 0)
-				message = std::move(tr("Remove the selected entry(ies)?"));
-			else {
-				if (m_rowsToRemove.count() == 1)
-					message = std::move(tr("Remove %1?").arg(dataValue(m_rowsToRemove.constFirst(), m_removeField)));
-				else {
-					message = dataValue(m_rowsToRemove.at(0), m_removeField) % "<br>"_L1;
-					message += dataValue(m_rowsToRemove.at(1), m_removeField) % "<br>"_L1;
-					if (m_rowsToRemove.count() > 2)
-						message += "...<br>"_L1 % dataValue(m_rowsToRemove.constLast(), m_removeField) % "<br>"_L1;
-					message += std::move(tr("Remove these entries?"));
+			if (m_removeField < 0) {
+				message = !mf_removeMessage ? std::move(tr("Remove the selected entry(ies)?")) : std::move(mf_removeMessage(m_rowsToRemove));
+			} else {
+				if (m_rowsToRemove.count() == 1) {
+					message = !mf_removeMessage
+						? std::move(tr("Remove %1?").arg(dataValue(m_rowsToRemove.constFirst(), m_removeField)))
+						: std::move(mf_removeMessage(m_rowsToRemove));
+				} else {
+					if (!mf_removeMessage) {
+						message = dataValue(m_rowsToRemove.at(0), m_removeField) % "<br>"_L1;
+						message += dataValue(m_rowsToRemove.at(1), m_removeField) % "<br>"_L1;
+						if (m_rowsToRemove.count() > 2)
+							message += "...<br>"_L1 % dataValue(m_rowsToRemove.constLast(), m_removeField) % "<br>"_L1;
+						message += std::move(tr("Remove these entries?"));
+					} else {
+						message = std::move(mf_removeMessage(m_rowsToRemove));
+					}
 				}
 			}
-			appItemManager()->showRemoveDialog(requestid, m_parentPage, m_identifier, tr("Remove ") % m_identifier, message);
+			appItemManager()->showRemoveDialog(requestid, m_parentPage, m_identifier, title, message);
 			return;
 		}
-		if (from_qml)
+		if (from_qml) {
 			beginRemoveRows(QModelIndex{}, m_rowsToRemove.constFirst(), m_rowsToRemove.constLast());
-		//for (const auto row : m_rowsToRemove | std::views::reverse)
-		//	removeMetaData(row);
-		if (from_qml)
 			endRemoveRows();
+		}
 	}
 }
 
+uint TPListModel::nextVirtualIndex() const
+{
+	uint virt_index{0};
+	for (const auto &row_data : std::as_const(m_rowsMetadata)) {
+		if (row_data.virt_index >= virt_index) {
+			virt_index = row_data.virt_index + 1;
+			if (virt_index >= m_nVisibleRows)
+				break;
+		}
+	}
+	return virt_index;
+}
 
-void TPListModel::fixVirtualIndices()
+void TPListModel::resetVirtualIndices()
 {
 	emit layoutAboutToBeChanged();
 	int virt_index{0};
@@ -584,10 +606,9 @@ void TPListModel::setVisible(const uint row, bool visible, const int column, con
 	else if (!is_visible && visible)
 		++m_nVisibleRows;
 	if (emit_signals) {
+		emit visibleCountChanged();
 		if (m_currentRow >= 0) {
-			if (visible && row > m_currentRow) {
-				setCurrentRow(row);
-			} else if (!visible && row <= m_currentRow) {
+			if (!visible && row <= m_currentRow) {
 				--m_currentRow;
 				if (m_currentRow < 0 && count() > 0)
 					setCurrentRow(0);
@@ -658,13 +679,27 @@ void TPListModel::setFiltersManager(TPFilterModel *filter_model, const bool use_
 
 inline bool TPListModel::itemShouldBeVisible(const uint real_row) const
 {
-		bool visible{false};
+	bool visible{true};
+	if (m_filters->positiveFilter().first >= 0) {
+		if (m_compareFunc)
+			visible = m_compareFunc(true, real_row);
+		else
+			visible = dataValue(real_row, m_filters->positiveFilter().first) == m_filters->positiveFilter().second;
+	}
+	if (m_filters->negativeFilter().first >= 0) {
+		if (m_compareFunc)
+			visible = m_compareFunc(false, real_row);
+		else
+			visible = dataValue(real_row, m_filters->negativeFilter().first) != m_filters->negativeFilter().second;
+	}
+
+	if (visible && !m_filters->filters().isEmpty()) {
 		for (const auto &filter : std::as_const(m_filters->filters())) {
-			if (dataValue(real_row, m_filterField) == filter) {
-				visible = true;
-				break;
-			}
+			if (dataValue(real_row, m_filterField) == filter)
+				return true;
 		}
+		visible = false;
+	}
 	return visible;
 }
 

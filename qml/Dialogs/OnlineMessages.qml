@@ -339,7 +339,7 @@ TPPopup {
 
 			property int _useridx: -1
 
-			TPCoachesAndClientsList {
+			/*TPCoachesAndClientsList {
 				id: chatList
 				parentPage: onlineMsgsDlg.parentPage
 				listClients: true
@@ -356,7 +356,7 @@ TPPopup {
 
 				onItemSelected: (userIdx) => newChatOrMessagePane._useridx = userIdx;
 			} //TPCoachesAndClientsList
-
+*/
 			RowLayout {
 				id: buttonsLayout
 				spacing: 10
@@ -373,7 +373,7 @@ TPPopup {
 					sourceImage: "chat.png"
 					enabled: newChatOrMessagePane._useridx > 0
 					Layout.preferredWidth: parent.width * 0.3
-					onClicked: {
+					onButtonClicked: {
 						AppMessages.openChat(newChatOrMessagePane._useridx);
 						mainLayout.currentIndex = 1;
 					}
@@ -383,7 +383,7 @@ TPPopup {
 					sourceImage: "send-message.png"
 					enabled: newChatOrMessagePane._useridx > 0
 					Layout.preferredWidth: parent.width * 0.6
-					onClicked: {
+					onButtonClicked: {
 						AppMessages.openNewMessageDialog(newChatOrMessagePane._useridx);
 						mainLayout.currentIndex = 1;
 					}

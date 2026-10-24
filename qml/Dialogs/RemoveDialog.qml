@@ -42,7 +42,7 @@ TPPopup {
 
 	RowLayout {
 		id: topRow
-		height: Math.max(imgElement.height, lblMessage.height)
+		//height: Math.max(imgElement.height, lblMessage.height)
 
 		anchors {
 			top: lblTitle.bottom

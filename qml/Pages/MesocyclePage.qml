@@ -115,8 +115,9 @@ TPPage {
 						id: clientsList
 						listClients: true
 						listConfirmed: true
+						parentPage: mesoPage
 						currentRow: AppUserModel.findUserById(mesoPage.mesoManager.client)
-						buttonString: qsTr("Go to client's page")
+						buttonString: qsTr("Go to clients page")
 						Layout.preferredHeight: 0.2 * mesoPage.height
 						Layout.fillWidth: true
 						Layout.minimumHeight: height
@@ -188,6 +189,7 @@ TPPage {
 
 			TPComboBox {
 				id: cboMesoType
+				textWhenCurIndexIsInvalid: qsTr("--Choose--")
 				Layout.fillWidth: true
 				model: ListModel {
 					id: typeModel
@@ -205,20 +207,14 @@ TPPage {
 					ListElement { text: qsTr("Other"); value: 11; enabled: true; }
 				}
 
-				onActivated: (index) => {
-					if (index < (typeModel.count - 1))
-						mesoPage.mesoManager.objective = textAt(index);
+				onItemActivated: (real_index, index, value) => {
+					if (real_index < (typeModel.count - 1))
+						mesoPage.mesoManager.type = textAt(index);
 					else
 						txtMesoTypeOther.forceActiveFocus();
-					currentIndex = index;
 				}
 
-				Component.onCompleted: {
-					let cboidx = find(mesoPage.mesoManager.type);
-					if (cboidx === -1)
-						cboidx = typeModel.count - 1;
-					currentIndex = cboidx;
-				}
+				Component.onCompleted: setCurrentIndexViaText(mesoPage.mesoManager.type)
 			}
 
 			TPTextInput {
@@ -238,6 +234,7 @@ TPPage {
 
 			TPComboBox {
 				id: cboMesoObjective
+				textWhenCurIndexIsInvalid: qsTr("--Choose--")
 				Layout.fillWidth: true
 				model: ListModel {
 					id: objectiveModel
@@ -255,20 +252,14 @@ TPPage {
 					ListElement { text: qsTr("Other"); value: 11; enabled: true; }
 				}
 
-				onActivated: (index) => {
-					if (index < (typeModel.count - 1))
-						mesoPage.mesoManager.objective = textAt(index);
+				onItemActivated: (real_index, index, value) => {
+					if (real_index < (typeModel.count - 1))
+						mesoPage.mesoManager.objective = textAt(real_index);
 					else
 						txtMesoObjectiveOther.forceActiveFocus();
-					currentIndex = index;
 				}
 
-				Component.onCompleted: {
-					let cboidx = find(mesoPage.mesoManager.objective);
-					if (cboidx === -1)
-						cboidx = objectiveModel.count - 1;
-					currentIndex = cboidx;
-				}
+				Component.onCompleted: setCurrentIndexViaText(mesoPage.mesoManager.objective);
 			}
 
 			TPTextInput {

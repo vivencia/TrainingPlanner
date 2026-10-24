@@ -10,6 +10,7 @@
 #include "qmlmesointerface.h"
 #include "return_codes.h"
 #include "thread_manager.h"
+#include "tpfileops.h"
 #include "tpfilepath.h"
 #include "tpsettings.h"
 #include "translationclass.h"
@@ -202,7 +203,7 @@ void DBMesocyclesModel::setModified(const uint meso_idx, const MesoFields field)
 	}
 	m_dbModelInterface->setModified(meso_idx, field);
 	appThreadManager()->runAction(m_db, m_dbModelInterface->isModified(meso_idx, MESO_FIELD_METADATA) ?
-												ThreadManager::UpdateSeveralFields : ThreadManager::UpdateOneField);
+									ThreadManager::UpdateSeveralFields : ThreadManager::UpdateOneField, m_dbModelInterface);
 }
 
 int DBMesocyclesModel::idxFromFieldValue(const QString &field_value, const int field) const
@@ -808,6 +809,19 @@ void DBMesocyclesModel::newMesoFromFile(const TPFilePath &filename, const std::o
 			mesomanager->updateInterface();
 		else
 			static_cast<void>(mesoManager(meso_idx));
+	}
+}
+
+void DBMesocyclesModel::importProgramFromFile()
+{
+	auto file_ops{std::make_shared<TPFileOps>(appItemManager()->appHomePage())};
+	if (file_ops) {
+		file_ops->setCanAddFile(true);
+		file_ops->setAddFileFilters(TPUtils::FT_TP_PROGRAM);
+		connect(file_ops.get(), &TPFileOps::fileAdded, this, [this, file_ops] () {
+			file_ops->doFileOperation(TPFileOps::OT_ViewExternally);
+		});
+		file_ops->doFileOperation(TPFileOps::OT_AddFile);
 	}
 }
 

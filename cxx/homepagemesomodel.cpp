@@ -29,6 +29,15 @@ HomePageMesoModel::HomePageMesoModel(DBMesocyclesModel *meso_model, const int ty
 	: TPListModel{meso_model, DBMesocyclesModel::MESO_TOTAL_FIELDS},
 													m_mesoModel{meso_model}, m_type{type}, m_viewIndex{view_index}
 {
+#ifndef QT_NO_DEBUG
+	QString str_name;
+	switch (m_type) {
+	case DBMesocyclesModel::MT_MESO_FROM_COACH: str_name = "MesoFromCoach"; break;
+	case DBMesocyclesModel::MT_MESO_FOR_SELF: str_name = "MesoForSelf"; break;
+	case DBMesocyclesModel::MT_MESO_FOR_CLIENT: str_name = "MesoForClient"; break;
+	}
+	setObjectName(str_name);
+#endif
 	setParentPage(appItemManager()->appHomePage());
 	setFieldsNames();
 	addFilters();
@@ -67,9 +76,6 @@ HomePageMesoModel::HomePageMesoModel(DBMesocyclesModel *meso_model, const int ty
 				}
 			}
 		}
-	});
-	connect(m_mesoModel, &DBMesocyclesModel::mesoDataLoaded, this, [this] () {
-		syncMetadata(m_mesoModel->count(), true);
 	});
 	connect(this, &TPListModel::currentRowChanged, this, [this] () {
 		if (currentRow() != -1)
@@ -189,5 +195,20 @@ void HomePageMesoModel::addFilters()
 													return m_mesoModel->clientLabel().chopped(2); }, std::move(QString{}));
 	filter->addFilterField(DBMesocyclesModel::MESO_FIELD_SPLIT, [this] () -> QString {
 													return m_mesoModel->splitLabel().chopped(2); }, std::move(QString{}));
+	switch (m_type) {
+	case DBMesocyclesModel::MT_MESO_FROM_COACH:
+		filter->setNegativeFilter(DBMesocyclesModel::MESO_FIELD_COACH, appUserModel()->userId(0));
+		filter->setPositiveFilter(DBMesocyclesModel::MESO_FIELD_CLIENT, appUserModel()->userId(0));
+		break;
+	case DBMesocyclesModel::MT_MESO_FOR_SELF:
+		filter->setPositiveFilter(DBMesocyclesModel::MESO_FIELD_COACH, appUserModel()->userId(0));
+		filter->setPositiveFilter(DBMesocyclesModel::MESO_FIELD_CLIENT, appUserModel()->userId(0));
+		break;
+	case DBMesocyclesModel::MT_MESO_FOR_CLIENT:
+		filter->setPositiveFilter(DBMesocyclesModel::MESO_FIELD_COACH, appUserModel()->userId(0));
+		filter->setNegativeFilter(DBMesocyclesModel::MESO_FIELD_CLIENT, appUserModel()->userId(0));
+		break;
+	default: Q_UNREACHABLE();
+	}
 	setFiltersManager(filter);
 }

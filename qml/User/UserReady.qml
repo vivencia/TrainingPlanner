@@ -5,8 +5,8 @@ import TpQml.Widgets
 
 TPLabel {
 	id: lblMain
-	text: qsTr("Ready to start using the App. Begin by creating a workout schedule, either within a fixed period of time or an open ended schedule")
-	wrapMode: Text.WordWrap
+	text: qsTr("Ready to start using the App.<br>Begin by creating a workout schedule, either within a fixed period of time or an open ended schedule")
+	singleLine: false
 	horizontalAlignment: Text.AlignJustify
 	verticalAlignment: Text.AlignVCenter
 	font: AppGlobals.extraLargeFont

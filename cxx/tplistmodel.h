@@ -18,6 +18,7 @@ QML_UNCREATABLE("")
 
 Q_PROPERTY(uint count READ count NOTIFY countChanged)
 Q_PROPERTY(uint colCount READ colCount CONSTANT FINAL)
+Q_PROPERTY(uint visibleCount READ visibleCount NOTIFY visibleCountChanged FINAL)
 Q_PROPERTY(int currentRow READ currentRow WRITE setCurrentRow NOTIFY currentRowChanged FINAL)
 Q_PROPERTY(int sortField READ sortField WRITE setSortField NOTIFY sortFieldChanged FINAL)
 Q_PROPERTY(int sortDirection READ sortDirection WRITE setSortDirection NOTIFY sortChanged FINAL)
@@ -28,6 +29,7 @@ Q_PROPERTY(bool anySelected READ anySelected NOTIFY selectedChanged FINAL)
 Q_PROPERTY(bool allSelected READ allSelected NOTIFY selectedChanged FINAL)
 Q_PROPERTY(bool noneSelected READ noneSelected NOTIFY selectedChanged FINAL)
 Q_PROPERTY(bool askBeforeRemove READ askBeforeRemove WRITE setAskBeforeRemove NOTIFY askBeforeRemoveChanged FINAL)
+Q_PROPERTY(QString identifier READ identifier WRITE setIdentifier NOTIFY identifierChanged FINAL)
 Q_PROPERTY(QStringList fieldsNames READ fieldsNames NOTIFY fieldsNamesChanged FINAL)
 Q_PROPERTY(TPFilterModel filters READ filters NOTIFY filtersChanged FINAL)
 Q_PROPERTY(QQuickItem* parentPage READ parentPage WRITE setParentPage NOTIFY parentPageChanged FINAL)
@@ -45,19 +47,24 @@ public:
 
 	inline uint count() const { return m_rowsMetadata.count(); }
 	inline uint colCount() const { return m_totalCols; }
+	inline uint visibleCount() const { return m_nVisibleRows; }
 
 	Q_INVOKABLE inline bool itemIsVisible(const int index) const { return visible(index); }
-	int realRow(const int visible_row) const;
+	Q_INVOKABLE int realRow(const int visible_row) const;
 	inline int visibleRow(const int real_row) const
 	{
 		return real_row >= 0 && real_row < m_rowsMetadata.count() ? m_rowsMetadata.at(real_row).virt_index : 1;
 	}
 	inline int currentRow() const { return m_currentRow; }
-	inline void setCurrentRow(const int new_row)
+	inline void setCurrentRow(const int visible_row)
 	{
-		if (m_currentRow != new_row) {
-			m_currentRow = new_row;
-			emit currentRowChanged();
+		if (visible_row >= -1 && visible_row < m_rowsMetadata.count()) {
+			if (m_currentRow != visible_row) {
+				if (visible(realRow(visible_row))) {
+					m_currentRow = visible_row;
+					emit currentRowChanged();
+				}
+			}
 		}
 	}
 	inline void setCurrentRowViaRealRow(const int real_row)
@@ -88,7 +95,11 @@ public:
 			applyFilters();
 		}
 	}
+	inline bool persistentFilterEnabled() const { return m_hasPersistentFilters; }
+	inline void enablePersistentFilter(const bool enable) { m_hasPersistentFilters = enable; }
 
+	inline QString identifier() const { return m_identifier; }
+	inline void setIdentifier(const QString &identifier) { m_identifier = identifier; emit identifierChanged(); }
 	/**
 	 * Name of the sortable fields to be included in TPListViewHeader. Don't override setFieldsNames() and the selectable
 	 * combobox will not appear on the header and the default sort field will be used
@@ -114,7 +125,7 @@ public:
 		if (m_sortDirection != s_dire) {
 			if (s_dire == NO_SORT) {
 				m_sortDirection = NO_SORT;
-				fixVirtualIndices();
+				resetVirtualIndices();
 				emit sortChanged();
 			} else {
 				m_sortDirection = static_cast<SortDirection>(s_dire);
@@ -184,6 +195,9 @@ public:
 	inline QQuickItem *parentPage() const { return m_parentPage; }
 	inline void setParentPage(QQuickItem *page) { m_parentPage = page; emit parentPageChanged(); }
 
+	inline void setRemoveTitleFunction(const std::function<QString(const QList<int>&)> &func) { mf_removeTitle = func; }
+	inline void setRemoveMessageFunction(const std::function<QString(const QList<int>&)> &func) { mf_removeMessage = func; }
+
 	bool askBeforeRemove() const;
 	inline void setAskBeforeRemove(const bool remove) { m_askBeforeRemove = remove; emit askBeforeRemoveChanged(); }
 	Q_INVOKABLE inline void removeCurrent() { removeItem(m_currentRow); }
@@ -229,6 +243,17 @@ public:
 		return QString{};
 	}
 
+	inline void setPersistentFilterCompareFunction(const bool positive, const uint filter_index, const QString &value,
+																			const std::function<bool(bool,int)> &func)
+	{
+		m_compareFunc = func;
+		if (positive)
+			m_filters->setPositiveFilter(filter_index, value);
+		else
+			m_filters->setNegativeFilter(filter_index, value);
+	}
+	inline void removePersistentFilterCompareFunction() { m_compareFunc = nullptr; }
+
 	inline int rowCount(const QModelIndex & = QModelIndex{}) const override final { return count(); }
 	inline int columnCount(const QModelIndex & = QModelIndex{}) const override final { return colCount(); }
 
@@ -249,8 +274,10 @@ public slots:
 signals:
 	void selectEntireRowChanged();
 	void countChanged();
+	void visibleCountChanged();
 	void parentPageChanged();
 	void askBeforeRemoveChanged();
+	void identifierChanged();
 	void filterFieldChanged();
 	void enableFiltersChanged();
 	void sortFieldChanged();
@@ -303,8 +330,11 @@ private:
 	QList<int> m_rowsToRemove;
 	uint m_nSelected{0}, m_totalCols{1}, m_nVisibleRows{0};
 	int m_currentRow{-1};
-	bool m_selectEntireRow{true}, m_enableFilters{false};
+	bool m_selectEntireRow{true}, m_hasPersistentFilters{false}, m_enableFilters{false};
 	std::optional<bool> m_askBeforeRemove{std::nullopt};
+	std::function<bool(bool,int)> m_compareFunc{nullptr};
+	std::function<QString(const QList<int>&)> mf_removeTitle{nullptr};
+	std::function<QString(const QList<int>&)> mf_removeMessage{nullptr};
 	SortDirection m_sortDirection{NO_SORT};
 	TPFilterModel *m_filters{nullptr};
 	QQmlComponent *m_filtersDialogComponent{nullptr};
@@ -312,7 +342,8 @@ private:
 	QQuickItem *m_parentPage{nullptr};
 
 	void remove(const bool from_qml, const bool bypass_confirmation = false);
-	void fixVirtualIndices();
+	uint nextVirtualIndex() const;
+	void resetVirtualIndices();
 	void insertSort(const uint row);
 	const bool visible(const int row, const int column = -1) const;
 	void setVisible(const uint row, bool visible, const int column = -1, const bool emit_signals = true);

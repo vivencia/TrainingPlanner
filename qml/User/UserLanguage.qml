@@ -21,7 +21,7 @@ ColumnLayout {
 		model: AppSettings.availableLanguages.length
 		delegate: TPRadioButtonOrCheckBox {
 			text: AppSettings.availableLanguagesLabel(index)
-			checked: AppSettings.userLocaleIdx === index
+			isChecked: AppSettings.userLocaleIdx === index
 			image: _control.country_flags[index]
 			multiLine: true
 			buttonGroup: languages_group
@@ -31,7 +31,7 @@ ColumnLayout {
 
 			required property int index
 
-			onClicked: AppTr.switchToLanguage(AppSettings.availableLanguages[index], true);
+			onChecked: (check) => AppTr.switchToLanguage(AppSettings.availableLanguages[index], true);
 		}
 	}
 }

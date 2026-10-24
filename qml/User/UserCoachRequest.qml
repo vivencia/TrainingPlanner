@@ -85,7 +85,7 @@ TPPopup {
 				}
 			}
 			function viewResume(user_idx: int): void {
-				viewResumeLoader._file_viewer.fileName = AppUserModel.resume(user_idx);
+				viewResumeLoader._file_viewer.fileOps.fileName = AppUserModel.resume(user_idx);
 				viewResumeLoader._file_viewer.startFullScreen();
 				viewResumeLoader.active = true;
 			}

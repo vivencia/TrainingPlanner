@@ -40,7 +40,29 @@ ApplicationWindow {
 			}
 		}
 
-		TPListView {
+		TPCoachesAndClientsList {
+			listClients: true
+			listCoaches: true
+			listConfirmed: true
+			listAvailable: true
+			parentPage: homePage
+			currentRow: 0
+			multipleSelection: true
+			buttonString: qsTr("Go to clients page")
+			perItemButtonString: qsTr("Ulalá")
+			identifier: "Test list"
+			height: 300
+			onItemSelected: (user_idx) => console.log(AppUserModel.userId_QML(user_idx), AppUserModel.userName(user_idx));
+			onButtonClicked: ItemManager.getClientsPage();
+			onItemButtonClicked: (user_idx) => console.log(AppUserModel.userId_QML(user_idx), AppUserModel.userName(user_idx));
+			anchors {
+				left: parent.left
+				right: parent.right
+				verticalCenter: parent.verticalCenter
+			}
+		}
+
+		/*TPListView {
 		id: listView
 		listModel: ItemManager.debugLog
 		parentPage: homePage
@@ -174,7 +196,7 @@ ApplicationWindow {
 			}
 		}
 
-		/*TPButton {
+		TPButton {
 			id: btnLogs
 			text: "Show logs"
 			onClicked: ItemManager.showLogs();

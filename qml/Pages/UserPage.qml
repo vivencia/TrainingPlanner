@@ -91,7 +91,7 @@ TPPage {
 				bottomMargin: 20
 			}
 
-			TPButton {
+			TPButton2 {
 				id: btnManageCoach
 				text: qsTr("Manage coach(es)/trainer(s)")
 				visible: AppUserModel.mainUserIsClient
@@ -101,7 +101,7 @@ TPPage {
 				onClicked: userPage.userManager.getCoachesPage();
 			}
 
-			TPButton {
+			TPButton2 {
 				id: btnManageClients
 				text: qsTr("Manage clients")
 				visible: AppUserModel.mainUserIsCoach

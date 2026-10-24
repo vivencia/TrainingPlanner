@@ -64,6 +64,8 @@ Item {
 			required property bool mesoSplitsAvailable
 			required property bool haveCalendar
 
+			onClicked: _control.mesoFilteredModel.mesoModel().getMesocyclePage(delegate.mesoIdx, false);
+
 			Rectangle {
 				id: optionsRec
 				color: AppSettings.primaryDarkColor
@@ -71,6 +73,94 @@ Item {
 				layer.enabled: true
 				visible: false
 				anchors.fill: parent
+			}
+
+			Rectangle {
+				id: removeBackground
+				anchors.fill: parent
+				color: "lightgray"
+				radius: 6
+				layer.enabled: true
+				visible: false
+			}
+
+			Rectangle {
+				id: backRec
+				anchors.fill: parent
+				radius: 8
+				layer.enabled: true
+				color: {
+					switch (_control.mesoFilteredModel.type) {
+						case MesocyclesModel.MT_MESO_FROM_COACH: return AppSettings.primaryColor;
+						case MesocyclesModel.MT_MESO_FOR_SELF: return AppSettings.primaryLightColor;
+						case MesocyclesModel.MT_MESO_FOR_CLIENT: return AppSettings.primaryDarkColor;
+					}
+				}
+				border.color: delegate.index === _control.mesoFilteredModel.currentRow ? AppSettings.fontColor : "transparent"
+				visible: false
+			}
+
+			background: MultiEffect {
+				id: mesoEntryEffect
+				visible: true
+				source: backRec
+				shadowEnabled: true
+				shadowOpacity: 0.5
+				blurMax: 16
+				shadowBlur: 1
+				shadowHorizontalOffset: 5
+				shadowVerticalOffset: 5
+				shadowColor: "black"
+				shadowScale: 1
+				opacity: 0.8
+			}
+
+			itemContent: Item {
+				id: mesoContent
+				height: (lblMesoName.height + lblCoach.height + lblClient.height + lblStartDate.height
+																	+ lblEndDate.height + lblSplit.height) + 20
+				width: mesosListView.width
+
+				TPLabel {
+					id: lblMesoName
+					text: delegate.mesoName
+					horizontalAlignment: Text.AlignHCenter
+					width: parent.width
+					y: 0
+				}
+				TPLabel {
+					id: lblCoach
+					text: delegate.mesoCoach
+					visible: _control.mesoFilteredModel.type !== MesocyclesModel.MT_MESO_FOR_SELF
+					width: parent.width
+					y: lblMesoName.height
+				}
+				TPLabel {
+					id: lblClient
+					text: delegate.mesoClient
+					visible: _control.mesoFilteredModel.type === MesocyclesModel.MT_MESO_FOR_CLIENT
+					width: parent.width
+					y: lblCoach.visible ? lblCoach.y + lblCoach.height: lblMesoName.height
+				}
+				TPLabel {
+					id: lblStartDate
+					text: delegate.mesoStartDate
+					width: parent.width
+					y: lblClient.visible ? lblClient.y + lblClient.height : lblCoach.visible
+						? lblCoach.y + lblCoach.height : lblMesoName.height
+				}
+				TPLabel {
+					id: lblEndDate
+					text: delegate.mesoEndDate
+					width: parent.width
+					y: lblStartDate.y + lblStartDate.height
+				}
+				TPLabel {
+					id: lblSplit
+					text: delegate.mesoSplit
+					width: parent.width
+					y: lblEndDate.y + lblEndDate.height
+				}
 			}
 
 			swipe.left: MultiEffect {
@@ -171,128 +261,6 @@ Item {
 					onClicked: _control.mesoFilteredModel.showOptionsMenu(btnExport, delegate.mesoIdx);
 				}
 			} //swipe.left: Rectangle
-
-			Rectangle {
-				id: removeBackground
-				anchors.fill: parent
-				color: "lightgray"
-				radius: 6
-				layer.enabled: true
-				visible: false
-			}
-
-			swipe.right: MultiEffect {
-				id: removeRec
-				anchors.fill: parent
-				source: removeBackground
-				shadowEnabled: true
-				shadowOpacity: 0.5
-				blurMax: 16
-				shadowBlur: 1
-				shadowHorizontalOffset: 5
-				shadowVerticalOffset: 5
-				shadowColor: "black"
-				shadowScale: 1
-				opacity: delegate.swipe.complete ? 0.8 : 0-delegate.swipe.position
-				Behavior on opacity { NumberAnimation {} }
-
-				TPButton {
-					text: qsTr("Remove Program")
-					image: "remove"
-					z: 1
-
-					anchors {
-						horizontalCenter: parent.horizontalCenter
-						verticalCenter: parent.verticalCenter
-					}
-
-					onClicked: {
-						msgDlg.meso_name = delegate.mesoName;
-						msgDlg.tpOpen();
-					}
-				}
-
-				TPBalloonTip {
-					id: msgDlg
-					title: qsTr("Remove ") + meso_name + "?"
-					message: qsTr("This action cannot be undone.")
-					image: "remove"
-					keepAbove: true
-					parentPage: ItemManager.appPagesManager.homePage() as TPPage
-
-					property string meso_name
-					onButton1Clicked: _control.mesoFilteredModel.mesoModel().removeMesocycle(delegate.mesoIdx);
-				}
-			} //swipe.right
-
-			Rectangle {
-				id: backRec
-				anchors.fill: parent
-				radius: 8
-				layer.enabled: true
-				color: {
-					switch (_control.mesoFilteredModel.type) {
-						case MesocyclesModel.MT_MESO_FROM_COACH: return AppSettings.primaryColor;
-						case MesocyclesModel.MT_MESO_FOR_SELF: return AppSettings.primaryLightColor;
-						case MesocyclesModel.MT_MESO_FOR_CLIENT: return AppSettings.primaryDarkColor;
-					}
-				}
-				border.color: delegate.index === _control.mesoFilteredModel.currentRow ? AppSettings.fontColor : "transparent"
-				visible: false
-			}
-
-			background: MultiEffect {
-				id: mesoEntryEffect
-				visible: true
-				source: backRec
-				shadowEnabled: true
-				shadowOpacity: 0.5
-				blurMax: 16
-				shadowBlur: 1
-				shadowHorizontalOffset: 5
-				shadowVerticalOffset: 5
-				shadowColor: "black"
-				shadowScale: 1
-				opacity: 0.8
-			}
-
-			contentItem: ColumnLayout {
-				id: mesoContent
-				spacing: 2
-
-				TPLabel {
-					text: delegate.mesoName
-					fontColor: AppSettings.fontColor
-					horizontalAlignment: Text.AlignHCenter
-					Layout.bottomMargin: 10
-					Layout.maximumWidth: parent.width
-				}
-				TPLabel {
-					text: delegate.mesoCoach
-					fontColor: AppSettings.fontColor
-					Layout.maximumWidth: parent.width
-					visible: _control.mesoFilteredModel.type === MesocyclesModel.MT_MESO_FOR_CLIENT
-				}
-				TPLabel {
-					text: delegate.mesoClient
-					fontColor: AppSettings.fontColor
-					Layout.maximumWidth: parent.width
-					visible: _control.mesoFilteredModel.type === MesocyclesModel.MT_MESO_FOR_CLIENT
-				}
-				TPLabel {
-					text: delegate.mesoStartDate
-					fontColor: AppSettings.fontColor
-				}
-				TPLabel {
-					text: delegate.mesoEndDate
-					fontColor: AppSettings.fontColor
-				}
-				TPLabel {
-					text: delegate.mesoSplit
-					fontColor: AppSettings.fontColor
-					Layout.maximumWidth: parent.width
-				}
-			}
 		} //delegate
 	} //ListView
 
@@ -314,7 +282,7 @@ Item {
 				id: btnAddMeso
 				text: qsTr("New Training Program")
 				image: "mesocycle-add.png"
-				visible: _control.mesoFilteredModel.type !== MesocyclesModel.MT_MESO_FOR_CLIENT
+				visible: _control.mesoFilteredModel.type !== MesocyclesModel.MT_MESO_FROM_COACH
 				Layout.preferredWidth: preferredWidth
 				Layout.maximumWidth: parent.width
 				Layout.maximumHeight: AppSettings.itemDefaultHeight
@@ -332,7 +300,7 @@ Item {
 				Layout.maximumHeight: AppSettings.itemDefaultHeight
 				Layout.alignment: Qt.AlignCenter
 
-				onClicked: ItemManager.chooseFileToImport();
+				onClicked: _control.mesoFilteredModel.mesoModel().importProgramFromFile();
 			}
 
 			TPButton {

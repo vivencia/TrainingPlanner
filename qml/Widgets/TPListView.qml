@@ -21,8 +21,8 @@ Item {
 	property alias delegate: _listView.delegate
 	property alias spacing: _listView.spacing
 	//readonly property alias vBar: _vBar
-	readonly property int minimumHeight: 15 + _headerLoader.height +
-										(_listView.count > 0 ? _listView.itemAt(0,0).height + 2*_listView.spacing : 0)
+	readonly property int minimumHeight: _headerLoader.height + (listModel.visibleCount > 0
+								? 40 + AppSettings.itemLargeHeight + delegates_height / listModel.visibleCount : 0)
 	readonly property int contentHeight: _listView.contentHeight + _headerLoader.height
 
 //protected:
@@ -61,7 +61,7 @@ Item {
 		id: _listView
 		model: _control.listModel
 		contentWidth: width
-		contentHeight: contentItem.childrenRect.height * 1.1
+		contentHeight: _control.delegates_height
 		currentIndex: _control.listModel.currentRow
 		reuseItems: true
 		highlight: highlight_component
@@ -69,6 +69,8 @@ Item {
 		clip: true
 		focus: true
 		spacing: 2
+
+		onCurrentIndexChanged: positionViewAtIndex(currentIndex, ListView.Contain)
 
 		Component {
 			id:	highlight_component
@@ -89,13 +91,13 @@ Item {
 			}
 		}
 
-		Connections {
+		/*Connections {
 			target: _control.listModel
 			function onItemAdded(index: int): void {
 				if (_control.listModel.itemIsVisible(index))
 					_listView.positionViewAtIndex(index, ListView.Center)
 			}
-		}
+		}*/
 
 		anchors {
 			top: _control.showHeader ? _headerLoader.bottom : parent.top
@@ -108,5 +110,9 @@ Item {
 
 	function itemAtIndex(index: int): Item {
 		return _listView.itemAtIndex(index);
+	}
+
+	function setCurrentIndex(index: int): void {
+		listModel.currentRow = index;
 	}
 }

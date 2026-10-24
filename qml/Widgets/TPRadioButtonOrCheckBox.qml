@@ -28,7 +28,7 @@ TPBackRec {
 	property int boxType: TPRadioButtonOrCheckBox.TP_RADIOBOX
 	property TPButtonGroup buttonGroup: null
 	readonly property int preferredWidth: label.preferredWidth + (_left_control ? _left_control.width : 0)
-																		+ (_right_control ? _right_control.width : 0) + 10
+																+ (_right_control ? _right_control.width : 0) + 10
 	property int preferredHeight: label.preferredHeight()
 
 	enum BoxType { TP_RADIOBOX, TP_CHECKBOX, TP_NONEBOX }

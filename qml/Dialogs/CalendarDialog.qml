@@ -30,16 +30,16 @@ TPPopup {
 
 	onInitDateChanged: {
 		if (bInitialized) {
-			datePickerControl.calendarModel = 0;
+			datePickerControl.qtCalendarModel = 0;
 			calModel.from = initDate;
-			datePickerControl.calendarModel = calModel;
+			datePickerControl.qtCalendarModel = calModel;
 		}
 	}
 	onFinalDateChanged: {
 		if (bInitialized) {
-			datePickerControl.calendarModel = 0;
+			datePickerControl.qtCalendarModel = 0;
 			calModel.to = finalDate;
-			datePickerControl.calendarModel = calModel;
+			datePickerControl.qtCalendarModel = calModel;
 		}
 	}
 
@@ -70,7 +70,7 @@ TPPopup {
 			Component.onCompleted: datePickerControl.setDate(_control.showDate);
 		}
 
-		TPListView {
+		ListView {
 			id: calMethodsList
 			model: CalendarMethods {
 				id: calendarMethods

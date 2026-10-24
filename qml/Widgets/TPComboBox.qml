@@ -213,7 +213,7 @@ ComboBox {
 
 				onReadyChanged: {
 					if (_control.currentIndex >= 0)
-						_control.setCurIndex(_control.currentIndex);
+						_control.setCurIndex();
 				}
 
 				function positionItem(index: int, item: Item): void {
@@ -372,7 +372,7 @@ ComboBox {
 	//Setting the currentIndex from a client will most likely use indices from an enum or other list. This may not correspond
 	//with the combo indices if there are separators and/or a specialIndex. I could ignore currentIndex altogether and use my
 	//own current index equivalent property, but that name is very apt and I'd like to keep using it
-	function setCurIndex(new_index: int): void {
+	function setCurIndex(): void {
 		let _cur_index = -1;
 		if (currentIndex < 0 && specialIndex >= 0)
 			_cur_index = specialIndex;
@@ -382,6 +382,22 @@ ComboBox {
 		displayText = _cur_index >= 0 ? getText(_cur_index) : textWhenCurIndexIsInvalid;
 		_ignore_index_change = true;
 		currentIndex = _cur_index;
+	}
+
+	function setCurrentIndexViaText(text: string): void {
+		if (text.length > 0) {
+			for(let i = 0; i < modelSize(); ++i) {
+				if (getText(i) === text) {
+					displayText = text;
+					_ignore_index_change = true;
+					currentIndex = itemsRepeater.indexFromRealIndex(i);
+					return;
+				}
+			}
+		}
+		displayText = textWhenCurIndexIsInvalid;
+		_ignore_index_change = true;
+		currentIndex = -1;
 	}
 
 	function modelSize(): int {

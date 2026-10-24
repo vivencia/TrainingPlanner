@@ -37,7 +37,7 @@ TPPopup {
 			}
 		}
 
-		TPButton {
+		TPButton2 {
 			id: btnChooseImage
 			image: "choose-avatar"
 			width: AppSettings.itemDefaultHeight

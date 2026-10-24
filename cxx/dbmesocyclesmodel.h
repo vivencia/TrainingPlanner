@@ -387,6 +387,7 @@ public:
 
 	void removeMesoFiles(const uint meso_idx);
 	void newMesoFromFile(const TPFilePath &filename, const std::optional<bool> &file_formatted = std::nullopt);
+	Q_INVOKABLE void importProgramFromFile();
 
 	inline bool checkName(const int meso_idx = -1, const QString &meso_name = QString{}) const
 	{

@@ -25,7 +25,7 @@ TPPopup {
 						break;
 					}
 				}
-				groupsRepeater.itemAt(x).checked = included;
+				groupsRepeater.tpItemAt(x).isChecked = included;
 			}
 			//groupsModel.set(x, {selected: groupsModel.get(x).display === groups[i]});
 			//groupsModel.setProperty(x, "selected", groupsModel.get(x).display === groups[i]);
@@ -69,7 +69,7 @@ TPPopup {
 		}
 	}
 
-	TPButton {
+	TPButton2 {
 		id: btnShowHideList
 		image: _dlgMuscularGroup.shown ? "fold-up.png" : "fold-down.png"
 		width: AppSettings.itemDefaultHeight
@@ -83,7 +83,7 @@ TPPopup {
 			leftMargin: 2
 		}
 
-		onClicked: _dlgMuscularGroup.shown = !_dlgMuscularGroup.shown;
+		onButtonClicked: _dlgMuscularGroup.shown = !_dlgMuscularGroup.shown;
 	}
 
 	ScrollView {
@@ -115,7 +115,7 @@ TPPopup {
 				delegate: TPRadioButtonOrCheckBox {
 					text: qsTr(display)
 					boxType: TPRadioButtonOrCheckBox.TP_CHECKBOX
-					checked: selected
+					isChecked: selected
 					width: itemsLayout.width
 					Layout.fillWidth: true
 
@@ -123,13 +123,17 @@ TPPopup {
 					required property string display
 					required property bool selected
 
-					onCheckedChanged: { _dlgMuscularGroup.groupsModel.set(index, { "selected": checked }); }
+					onChecked: (check) => _dlgMuscularGroup.groupsModel.set(index, { "selected": check });
+				}
+
+				function tpItemAt(index: int): TPRadioButtonOrCheckBox {
+					return itemAt(index) as TPRadioButtonOrCheckBox;
 				}
 			} //Repeater
 		} //ColumnLayout
 	} //ScrollView
 
-	TPButton {
+	TPButton2 {
 		id: btnMakeFilter
 		text: _dlgMuscularGroup.buttonLabel
 
@@ -143,7 +147,7 @@ TPPopup {
 			bottom: _dlgMuscularGroup.contentItem.bottom
 		}
 
-		onClicked: {
+		onButtonClicked: {
 			let muscularGroups = "";
 			for (let i = 0; i < _dlgMuscularGroup.groupsModel.count; ++i) {
 				if (_dlgMuscularGroup.groupsModel.get(i).selected)

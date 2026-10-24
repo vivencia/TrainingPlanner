@@ -41,7 +41,7 @@ TPBackRec {
 			rightMargin: 5
 		}
 
-		onClicked: _control.parentPopup.closePopup(-1);
+		onButtonClicked: _control.parentPopup.closePopup(-1);
 		Component.onCompleted: {
 			if (!_control.parentPopup.resizeable)
 				_control.titleBarButtons = this;
@@ -164,7 +164,7 @@ TPBackRec {
 					margins: 5
 				}
 
-				onClicked: _control.restore();
+				onButtonClicked: _control.restore();
 			}
 
 			TPButton2 {
@@ -182,7 +182,7 @@ TPBackRec {
 					right: btnMaxRestoreWindow.left
 				}
 
-				onClicked: _control.minimize();
+				onButtonClicked: _control.minimize();
 			}
 
 			TPImage {

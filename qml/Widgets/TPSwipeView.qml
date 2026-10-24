@@ -35,13 +35,7 @@ Item {
 		}
 	}
 
-	Timer {
-		id: resumeMouseTimer
-		interval: 500
-		onTriggered: mouseArea.resumeMouseOperations();
-	}
-
-	TPMouseArea {
+	TPPointHandler {
 		id: mouseArea
 		objectName: "X"
 		movingWidget: _control
@@ -50,12 +44,11 @@ Item {
 		movableWidgetCanGoOutsideBounds: true
 		lockMovingToXAxis: true
 		enabledCondition: _control.interactive
-		//z: -1
 
 		onMovingFinished: (x,y) => {
-			if ((x >= -_control._snapping_threshold && x <= _control._snapping_threshold)
-					|| (x >= width - _control._snapping_threshold && x <= width + _control._snapping_threshold))
-				_control.snapCurrentItemIntoPosition();
+			if ((x >= -_control._snapping_threshold && x <= _control._snapping_threshold) ||
+				(x >= _control.width - _control._snapping_threshold && x <= _control.width + _control._snapping_threshold))
+				_control.currentItem.x = _control.workMargins; //snap item into position;
 		}
 	}
 
@@ -83,7 +76,7 @@ Item {
 			color: _control.indicatorsColors[index]
 			width: AppSettings.itemSmallHeight
 			height: width
-			onClicked: (clickid) => _control.setCurrentIndex(clickid);
+			onButtonClicked: (clickid) => _control.setCurrentIndex(clickid);
 
 			required property int index
 		}
@@ -131,25 +124,17 @@ Item {
 		setCurrentIndex(currentIndex);
 	}
 
-	function snapCurrentItemIntoPosition(): void {
-		mouseArea.stopMouseOperations();
-		currentItem.x = workMargins;
-		resumeMouseTimer.start();
-	}
-
 	function moveItems(): void {
 		if (_ignore_x_change) return;
 		if (mouseArea.xMovingDirection === TPMouseArea.MA_LEFT) {
 			if (currentItem.x <= -width + _snapping_threshold) {
 				_ignore_x_change = true;
-				mouseArea.stopMouseOperations();
 				switchToNextItem();
 				return;
 			}
 		} else if (mouseArea.xMovingDirection === TPMouseArea.MA_RIGHT) {
 			if (currentItem.x >= width - _snapping_threshold) {
 				_ignore_x_change = true;
-				mouseArea.stopMouseOperations();
 				switchToNextItem();
 				return;
 			}

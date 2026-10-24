@@ -81,12 +81,11 @@ ColumnLayout {
 		visible: profileModule._is_client
 		Layout.fillWidth: true
 
-		onActivated: (index) => {
-			if (index < userRoleModel.count - 1) {
-				AppUserModel.setUserRole(profileModule.userIdx, textAt(index));
+		onItemActivated: (real_index, index, value) => {
+			if (real_index < userRoleModel.count - 1) {
+				AppUserModel.setUserRole(profileModule.userIdx, displayText);
 				profileModule._clientrole_ok = true;
-			}
-			else {
+			} else {
 				profileModule._clientrole_ok = false;
 				txtUserRole.forceActiveFocus();
 			}
@@ -120,12 +119,11 @@ ColumnLayout {
 		enabled: profileModule._clientrole_ok
 		Layout.fillWidth: true
 
-		onActivated: (index) => {
-			if (index < userGoalModel.count - 1) {
-				AppUserModel.setGoal(profileModule.userIdx, textAt(index));
+		onItemActivated: (real_index, index, value) => {
+			if (real_index < userGoalModel.count - 1) {
+				AppUserModel.setGoal(profileModule.userIdx, displayText);
 				profileModule._goal_ok = true;
-			}
-			else {
+			} else {
 				profileModule._goal_ok = false;
 				txtUserGoal.forceActiveFocus();
 			}
@@ -159,12 +157,11 @@ ColumnLayout {
 		enabled: profileModule._clientrole_ok && profileModule._goal_ok
 		Layout.fillWidth: true
 
-		onActivated: (index) => {
-			if (index < coachRoleModel.count - 1) {
-				AppUserModel.setCoachRole(profileModule.userIdx, textAt(index));
+		onItemActivated: (real_index, index, value) => {
+			if (real_index < coachRoleModel.count - 1) {
+				AppUserModel.setCoachRole(profileModule.userIdx, displayText);
 				profileModule._coachrole_ok = true;
-			}
-			else {
+			} else {
 				profileModule._coachrole_ok = false;
 				txtCoachRole.forceActiveFocus();
 			}
@@ -248,9 +245,9 @@ ColumnLayout {
 		if (profileModule._is_client) {
 			const client_role = AppUserModel.userRole(profileModule.userIdx);
 			profileModule._clientrole_ok = client_role.length > 1;
-			if (!profileModule._clientrole_ok)
+			if (!profileModule._clientrole_ok) {
 				cboUserRole.currentIndex = -1;
-			else {
+			} else {
 				idx = cboUserRole.find(client_role);
 				if (idx < 0) {
 					idx = userRoleModel.count - 1;
@@ -261,9 +258,9 @@ ColumnLayout {
 
 			const user_goal = AppUserModel.goal(profileModule.userIdx);
 			profileModule._goal_ok = user_goal.length > 1;
-			if (!profileModule._goal_ok)
+			if (!profileModule._goal_ok) {
 				cboGoal.currentIndex = -1;
-			else {
+			} else {
 				idx = cboGoal.find(user_goal);
 				if (idx < 0) {
 					idx = userGoalModel.count - 1;
@@ -276,16 +273,16 @@ ColumnLayout {
 				userRoleModel.get(i).enabled = enabled;
 			for (let y = 0; y < userGoalModel.count; ++y)
 				userGoalModel.get(y).enabled = enabled;
-		}
-		else
+		} else {
 			profileModule._goal_ok = profileModule._clientrole_ok = true;
+		}
 
 		if (profileModule._is_coach) {
 			const coach_role = AppUserModel.coachRole(profileModule.userIdx);
 			profileModule._coachrole_ok = coach_role.length > 1;
-			if (!profileModule._coachrole_ok)
+			if (!profileModule._coachrole_ok) {
 				cboCoachRole.currentIndex = -1;
-			else {
+			} else {
 				idx = cboCoachRole.find(coach_role);
 				if (idx < 0) {
 					idx = coachRoleModel.count - 1;
@@ -295,9 +292,9 @@ ColumnLayout {
 			}
 			for (let x = 0; x < coachRoleModel.count; ++x)
 				coachRoleModel.get(x).enabled = enabled;
-		}
-		else
+		} else {
 			profileModule._coachrole_ok = true;
+		}
 
 		imgAvatar.source = AppUserModel.avatar(profileModule.userIdx);
 	}

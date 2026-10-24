@@ -22,20 +22,24 @@ ColumnLayout {
 		function onUserImportFromServerStatus(can_import: bool, is_imported: bool, message: string): void {
 			_control.bReady = is_imported;
 			btnCheckEMail._can_click = !can_import && !is_imported;
-			_message = message;
+			_control._message = message;
 		}
+	}
+
+	TPButtonGroup {
+		id: grpUser
 	}
 
 	TPRadioButtonOrCheckBox {
 		id: optNewUser
 		text: AppUserModel.newUserLabel
 		multiLine: true
+		buttonGroup: grpUser
 		Layout.fillWidth: true
 
-		onClicked: {
-			_control.bReady = checked;
-			optImportUser.checked = !checked;
-			if (checked)
+		onChecked: (check) => {
+			_control.bReady = check;
+			if (check)
 				AppUserModel.createMainUser();
 		}
 	}
@@ -44,12 +48,12 @@ ColumnLayout {
 		id: optImportUser
 		text: AppUserModel.existingUserLabel
 		multiLine: true
+		buttonGroup: grpUser
 		enabled: AppUserModel.canConnectToServer
 		Layout.fillWidth: true
 
-		onClicked: {
-			optNewUser.checked = !checked;
-			if (checked)
+		onChecked: (check) => {
+			if (check)
 				txtEmail.forceActiveFocus();
 		}
 	}
@@ -92,7 +96,7 @@ ColumnLayout {
 		Layout.fillWidth: true
 	}
 
-	TPButton {
+	TPButton2 {
 		id: btnCheckEMail
 		text: AppUserModel.checkEmailLabel
 		enabled: _can_click && txtEmail.inputOK && passwordControl.passwordOK

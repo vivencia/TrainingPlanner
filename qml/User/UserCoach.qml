@@ -6,7 +6,6 @@ import QtQuick.Layouts
 import TpQml
 import TpQml.Widgets
 import TpQml.Pages
-import TpQml.Dialogs
 
 ColumnLayout {
 	id: userCoachModule
@@ -16,8 +15,6 @@ ColumnLayout {
 	property bool bReady: optPersonalUse.checked || optCoachUse.checked
 
 //private:
-	property bool bChooseResume: false
-	property bool bResumeSent: false
 	readonly property int userIdx: 0
 
 	Component.onCompleted: getUserInfo();
@@ -36,7 +33,7 @@ ColumnLayout {
 		multiLine: true
 		Layout.fillWidth: true
 		Component.onCompleted: Layout.topMargin = (Qt.platform.os !== "android") ? 30 : 10
-		onClicked: AppUserModel.setIsClient(userCoachModule.userIdx, checked);
+		onChecked: (check) => AppUserModel.setIsClient(userCoachModule.userIdx, check);
 	}
 
 	TPRadioButtonOrCheckBox {
@@ -44,14 +41,14 @@ ColumnLayout {
 		text: qsTr("I will use this application to coach or train other people")
 		multiLine: true
 		Layout.fillWidth: true
-		onClicked: AppUserModel.setIsCoach(userCoachModule.userIdx, checked);
+		onChecked: (check) => AppUserModel.setIsCoach(userCoachModule.userIdx, check);
 	}
 
 	TPRadioButtonOrCheckBox {
 		id: chkOnlineCoach
 		text: qsTr("Make myself available online for TP users to contact me")
 		boxType: TPRadioButtonOrCheckBox.TP_CHECKBOX
-		checked: AppUserModel.isCoachRegistered()
+		isChecked: AppUserModel.isCoachRegistered()
 		multiLine: true
 		enabled: AppUserModel.mainUserConfigured && AppUserModel.onlineAccount && optCoachUse.checked && userCoachModule.userIdx === 0
 		Layout.fillWidth: true
@@ -60,51 +57,27 @@ ColumnLayout {
 
 		Connections {
 			target: AppUserModel
-			function onCoachOnlineStatus(registered: bool): void { chkOnlineCoach.checked = registered; }
+			function onCoachOnlineStatus(registered: bool): void { chkOnlineCoach.isChecked = registered; }
 		}
 
-		onClicked: AppUserModel.setCoachPublicStatus(checked);
+		onChecked: (check) => AppUserModel.setCoachPublicStatus(check);
 	}
 
-	TPButton {
-		id: btnSendResume
-		text: qsTr("Send Résumé")
-		rounded: false
-		enabled: chkOnlineCoach.checked
-		Layout.preferredWidth: parent.width/2
+	TPFileViewer {
+		fileOps: FileOperations {
+			canAddFile: true
+			useControls: true
+		}
+		useBackground: true
+		missingFileInfo: qsTr("Choose your résumé file")
+		Layout.preferredWidth: minimumWidth
+		Layout.preferredHeight: minimumHeight
 		Layout.alignment: Qt.AlignCenter
-
-		onClicked: userCoachModule.bChooseResume = true;
-	}
-
-	Loader {
-		id: chooseResumeLoader
-		active: userCoachModule.bChooseResume
-		asynchronous: true
-
-		property TPFileDialog _file_dialog
-
-		sourceComponent: TPFileDialog {
-			id: chooseFileDlg
-			title: qsTr("Choose the file to import from")
-			fileType: AppUtils.FT_PDF|AppUtils.FT_OPEN_DOCUMENT|AppUtils.FT_MS_DOCUMENT
-
-			onDialogClosed: (result) => {
-				if (result) {
-					AppUserModel.uploadResume(currentFile);
-					userCoachModule.bResumeSent = true;
-				}
-				userCoachModule.bChooseResume = false;
-			}
-			Component.onCompleted: chooseResumeLoader._file_dialog = this
-		}
-
-		onLoaded: _file_dialog.open();
 	}
 
 	function getUserInfo(): void {
-		optPersonalUse.checked = AppUserModel.isClient(userCoachModule.userIdx);
-		optCoachUse.checked = AppUserModel.isCoach(userCoachModule.userIdx);
+		optPersonalUse.isChecked = AppUserModel.isClient(userCoachModule.userIdx);
+		optCoachUse.isChecked = AppUserModel.isCoach(userCoachModule.userIdx);
 	}
 
 	function focusOnFirstField(): void {

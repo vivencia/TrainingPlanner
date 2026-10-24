@@ -40,7 +40,7 @@ TPPage {
 			Layout.maximumWidth: parent.width - 30
 			Layout.maximumHeight: AppSettings.itemDefaultHeight * 2
 
-			TPButton {
+			TPButton2 {
 				image: "gps.png"
 				enabled: weatherInfo.canUseGps
 				width: 30
@@ -63,9 +63,10 @@ TPPage {
 			Layout.fillWidth: true
 			Layout.topMargin: 5
 
-			TPListView {
+			ListView {
 				id: scrollViewCities
 				model: weatherInfo.savedLocationsCount
+				delegateModelAccess: DelegateModel.ReadOnly
 				width: mainLayout.width
 				height: parent.height - AppSettings.itemDefaultHeight - 10
 
@@ -94,7 +95,7 @@ TPPage {
 						leftPadding: 5
 					}
 
-					TPButton {
+					TPButton2 {
 						image: "remove"
 						width: AppSettings.itemDefaultHeight
 						enabled: delegate.index === weatherInfo.currentlyViewedLocationIndex

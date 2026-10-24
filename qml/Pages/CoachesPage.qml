@@ -39,12 +39,12 @@ TPPage {
 
 		TPTabButton {
 			text: qsTr("Coaches or Trainers")
-			onClicked: coachesList.selectItem(coachesList.currentRow >= 0 ? coachesList.currentRow : 0);
+			onClicked: coachesPage.userIdx = coachesList.workingModel.selectedUser;
 		}
 
 		TPTabButton {
 			text: qsTr("Pending answers")
-			onClicked: pendingCoachesList.selectItem(pendingCoachesList.currentRow >= 0 ? pendingCoachesList.currentRow : 0);
+			onClicked: coachesPage.userIdx = pendingCoachesList.workingModel.selectedUser;
 		}
 
 		anchors {
@@ -55,8 +55,6 @@ TPPage {
 			right: parent.right
 			rightMargin: 5
 		}
-
-		Component.onCompleted: coachesList.selectItem(coachesList.currentRow);
 	}
 
 	StackLayout {
@@ -77,14 +75,13 @@ TPPage {
 			id: coachesList
 			listCoaches: true
 			listConfirmed: true
+			parentPage: coachesPage
 			perItemButtonString: qsTr("Resumè");
-			buttonString: qsTr("Remove")
 			Layout.fillWidth: true
 			Layout.preferredHeight: parent.height * 0.3
 
-			onItemSelected: (userIdx) => coachesPage.userIdx = userIdx;
-			onButtonClicked: coachesPage.showRemoveMessage(false);
-			onItemButtonClicked: (userIdx) => coachesPage.viewResume(userIdx);
+			onItemSelected: (user_idx) => coachesPage.userIdx = user_idx;
+			onItemButtonClicked: (user_idx) => coachesPage.viewResume(user_idx);
 		} //TPCoachesAndClientsList: coachesList
 
 		Item {
@@ -94,6 +91,7 @@ TPPage {
 			TPCoachesAndClientsList {
 				id: pendingCoachesList
 				listCoaches: true
+				parentPage: coachesPage
 				perItemButtonString: qsTr("Résumé")
 				height: parent.height - AppSettings.itemDefaultHeight - 10
 
@@ -112,36 +110,36 @@ TPPage {
 			RowLayout {
 				uniformCellSizes: true
 				height: AppSettings.itemDefaultHeight
-				enabled: pendingCoachesList.currentRow !== -1
+				enabled: pendingCoachesList.workingModel.selectedUser !== -1
 
 				anchors {
-					bottom: parent.bottom
+					top: pendingCoachesList.bottom
 					left: parent.left
 					right: parent.right
 				}
 
-				TPButton {
+				TPButton2 {
 					text: qsTr("Accept")
 					rounded: false
 					Layout.alignment: Qt.AlignCenter
 
-					onClicked: AppUserModel.acceptUser(pendingCoachesList.selectedUserIdx);
+					onClicked: AppUserModel.acceptUser(pendingCoachesList.workingModel.selectedUser);
 				}
-				TPButton {
+				TPButton2 {
 					text: qsTr("Decline")
 					rounded: false
 					Layout.alignment: Qt.AlignCenter
 
-					onClicked: coachesPage.showRemoveMessage(true);
+					onClicked: pendingCoachesList.workingModel.removeCurrent();
 				}
 			}
 		}//Item
 	} //StackLayout
 
-	TPButton {
+	TPButton2 {
 		id: btnFindCoachOnline
 		text: qsTr("Look online for available coaches");
-		multiline: true
+		multiLine: true
 		rounded: false
 		enabled: AppUserModel.canConnectToServer
 
@@ -218,55 +216,20 @@ TPPage {
 	}
 
 	Loader {
-		id: removeUserDlgLoader
-		asynchronous: true
-		active: false
-
-		property bool decline
-		property TPBalloonTip _remove_dialog
-
-		sourceComponent: TPBalloonTip {
-			parentPage: coachesPage
-			image: "remove"
-			keepAbove: true
-			message: removeUserDlgLoader.decline ?
-				qsTr("The coach will receive your reply, but might choose to send another answer unless you block them") :
-				qsTr("The coach will be notified of your decision, but might still contact you unless you block them")
-			onButton1Clicked: coachesPage.removeOrDecline(removeUserDlgLoader.decline);
-			onClosed: removeUserDlgLoader.active = false;
-			Component.onCompleted: removeUserDlgLoader._remove_dialog = this;
-		}
-
-		onLoaded: {
-			if (decline)
-				_remove_dialog.title = qsTr("Decline ") + AppUserModel.userName(pendingCoachesList.selectedUserIdx) + "?";
-			else
-				_remove_dialog.title = qsTr("Remove ") + AppUserModel.userName(coachesList.selectedUserIdx) + "?";
-			_remove_dialog.tpOpen();
-		}
-	}
-	function showRemoveMessage(decline: bool): void {
-		removeUserDlgLoader.decline = decline;
-		removeUserDlgLoader.active = true;
-	}
-
-	function removeOrDecline(decline: bool) {
-		if (!decline)
-			AppUserModel.removeUser(coachesPage.userIdx);
-		else
-			AppUserModel.rejectUser(pendingCoachesList.selectedUserIdx);
-	}
-
-	Loader {
 		id: viewResumeLoader
 		active: false
 		asynchronous: true
 		property TPFileViewer _file_viewer
 
 		sourceComponent: TPFileViewer {
+			fileOps: FileOperations {
+				canDownloadOrGenerate: true
+				fileName: AppUserModel.resume(coachesPage.userIdx);
+			}
+
 			missingFileInfo: qsTr(`The coach's resumè file could not be found.
 				You can try to download it by pressing the second button from the left on the bottom of the screen`)
-			canDownloadOrGenerate: true
+
 			onWindowStateChanged: (window_state) => {
 				if (window_state === TPFileViewer.WS_NORMAL)
 					viewResumeLoader.active = false;
@@ -274,8 +237,8 @@ TPPage {
 			Component.onCompleted: viewResumeLoader._file_viewer = this;
 		}
 	}
+
 	function viewResume(user_idx: int): void {
-		viewResumeLoader._file_viewer.fileName = AppUserModel.resume(user_idx);
 		viewResumeLoader._file_viewer.startFullScreen();
 		viewResumeLoader.active = true;
 	}

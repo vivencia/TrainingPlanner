@@ -34,6 +34,8 @@ public:
 		LF_N_FIELDS
 	};
 
+	static constexpr QLatin1StringView originQml{"QML Engine"};
+
 	Q_DISABLE_COPY_MOVE(TPLogs)
 	explicit TPLogs(LogType type, const QString &category, QObject *parent = nullptr);
 

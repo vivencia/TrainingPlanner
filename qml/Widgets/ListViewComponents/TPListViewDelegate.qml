@@ -44,7 +44,7 @@ SwipeDelegate {
 		target: _control.listModel
 		function onItemRemoved(item: int): void {
 			if (item === _control._index)
-				_control.tpListView.delegates_height -= _control.height;
+				_control.tpListView.delegates_height -= _control.height - 2*_control.tpListView.spacing;
 		}
 		function onCancelRemove(): void {
 			if (_control.listModel.currentRow === _control._index)
@@ -56,7 +56,7 @@ SwipeDelegate {
 		id: bufferTimer
 		interval: 500
 		onTriggered: {
-			if (_control._index > 0 && _control._itemVisible) //TPListView minimum size already accounts for the first item
+			if (_control._index >= 0 && _control._itemVisible) //TPListView minimum size already accounts for the first item
 				_control.tpListView.delegates_height += _control.height + 2*_control.tpListView.spacing;
 			//Now that size reached its final value, layout the widgets inside listView.delegateItem. Only useful for complex
 			//items like TPRadioButtonOrCheckBox or multi-items items.
@@ -78,11 +78,11 @@ SwipeDelegate {
 		height: parent ? parent.height: 0
 		clip: false
 		color: SwipeDelegate.pressed ? "#555" : "#666"
-		radius: 5
+		radius: 8
 
 		TPImage {
 			source: "remove"
-			width: AppSettings.itemDefaultHeight
+			width: _control.height >= AppSettings.itemLargeHeight ? _control.height / 2 : _control.height * 0.9
 			height: width
 			opacity: 2 * -_control.swipe.position
 
@@ -96,9 +96,11 @@ SwipeDelegate {
 
 	swipe.onCompleted: {
 		_control.listModel.currentRow = _control._index;
-		if (_control.listModel.isSelected(_control._index))
-			_control.listModel.removeSelected();
-		else
-			_control.listModel.removeItem(_control._index);
+		if (swipe.position === -1) { //swipe right
+			if (_control.listModel.isSelected(_control._index))
+				_control.listModel.removeSelected();
+			else
+				_control.listModel.removeItem(_control._index);
+		}
 	}
 }

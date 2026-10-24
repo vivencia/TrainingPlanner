@@ -156,6 +156,13 @@ void QmlUserInterface::createCoachesPage()
 void QmlUserInterface::createClientsPage()
 {
 	m_clientsPage = static_cast<QQuickItem*>(m_clientsComponent->create(appQmlEngine()->rootContext()));
+#ifndef QT_NO_DEBUG
+	if (!m_clientsPage) {
+		appItemManager()->log(TPLogs::LT_DEBUG, TPLogs::originQml,
+						std::move("Component creation failed"_L1), std::move(m_clientsComponent->errorString()));
+	return;
+	}
+#endif
 	appQmlEngine()->setObjectOwnership(m_clientsPage, QQmlEngine::CppOwnership);
 	m_clientsPage->setParentItem(appMainWindow()->contentItem());
 	appPagesListModel()->openPage(m_clientsPage, std::move(tr("Clients")));

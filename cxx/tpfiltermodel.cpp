@@ -35,7 +35,7 @@ TPFilterModel::TPFilterModel(TPListModel *parent)
 				if (!m_filterElements.at(i).values.isEmpty()) {
 					const QPair<bool,QString> &value{m_getData(index, m_filterElements.at(index).field)};
 					if (!hasValue(m_filterElements.at(i), value.second)) {
-						m_filterElements[i].selected_values.append(std::move(false));
+						m_filterElements[i].selected_values.append(false);
 						m_filterElements[i].values.append(std::move(value.second));
 					}
 				}
@@ -136,6 +136,36 @@ void TPFilterModel::selectAll()
 	for (auto &filter : m_filterElements)
 		filter.selected = true;
 	emit dataChanged(index(0, 0), index(count() - 1, 0), QList<int>{} << selectedRole);
+}
+
+void TPFilterModel::setPositiveFilter(const uint filter_index, const QString &value)
+{
+	m_positiveFilter.first = filter_index;
+	m_positiveFilter.second = value;
+	m_parentModel->enablePersistentFilter(true);
+}
+
+void TPFilterModel::clearPositiveFilter(const QString &value)
+{
+	m_positiveFilter.first = -1;
+	m_positiveFilter.second.clear();
+	if (m_negativeFilter.first == -1)
+		m_parentModel->enablePersistentFilter(false);
+}
+
+void TPFilterModel::setNegativeFilter(const uint filter_index, const QString &value)
+{
+	m_negativeFilter.first = filter_index;
+	m_negativeFilter.second = value;
+	m_parentModel->enablePersistentFilter(true);
+}
+
+void TPFilterModel::clearNegativeFilter(const QString &value)
+{
+	m_negativeFilter.first = -1;
+	m_negativeFilter.second.clear();
+	if (m_positiveFilter.first == -1)
+		m_parentModel->enablePersistentFilter(false);
 }
 
 void TPFilterModel::initFilterValues(const uint field)

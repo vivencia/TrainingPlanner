@@ -20,7 +20,7 @@ TPPopup {
 	required property var entriesList
 	property bool showIndicator: true
 
-	signal menuEntrySelected(btn_id: int);
+	signal menuEntrySelected(btn_id: int)
 
 //protected:
 	readonly property int smallWidth: AppSettings.itemSmallHeight
@@ -37,7 +37,7 @@ TPPopup {
 		}
 	}
 
-	onMouseItemClicked: (mouse) => {
+	onMouseItemClicked: {
 		_menu.behaviour_enabled = true;
 		expanded = !expanded;
 		x = expanded ? defaultX - width : defaultX
