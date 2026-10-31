@@ -18,13 +18,11 @@ QML_UNCREATABLE("")
 public:
 	inline explicit QmlExercisesDatabaseInterface(QObject *parent) : QObject{parent} {}
 
-	Q_INVOKABLE const uint removeExercise(const uint row);
 	void getExercisesPage(QmlWorkoutInterface *connect_page = nullptr);
 
 private:
 	QQmlComponent *m_exercisesComponent{nullptr};
 	QQuickItem *m_exercisesPage{nullptr};
-	QVariantMap m_exercisesProperties;
 
 	void createExercisesPage(QmlWorkoutInterface *connect_page);
 };

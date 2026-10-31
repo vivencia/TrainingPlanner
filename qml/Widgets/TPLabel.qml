@@ -71,17 +71,28 @@ Label {
 	}
 
 	function preferredHeight(): int {
+		let ph = 0;
 		if (singleLine) {
-			return fm.height * 1.05;
+			ph = fm.height * 1.05;
 		} else {
-			const br_w = fm.boundingRect(text).width;
-			let ph = 0;
-			if (width < br_w) {
-				ph = Math.floor(fm.height * (fm.boundingRect(text).width / width));
-				return ph;
+			let br = 1, br1 = 0, n_lines = 0;
+			do {
+				++n_lines;
+				br1 = text.indexOf("<br>", br);
+				//if ((br1 - br) * fm.maximumCharacterWidth >= width)
+				//	++n_lines;
+				br = br1 + 1;
+			} while (br > 1);
+			if (n_lines === 1) {
+				const br_w = fm.boundingRect(text).width;
+				if (width < br_w)
+					ph = Math.floor(fm.height * (fm.boundingRect(text).width / width));
+				else
+					ph = fm.height * 1.05;
 			} else {
-				return fm.height * 1.05;
+				ph = n_lines * fm.height * 1.05;
 			}
 		}
+		return ph;
 	}
 }

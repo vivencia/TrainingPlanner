@@ -24,7 +24,7 @@ Rectangle {
 	property bool showFilterInput: false
 	property alias model: _control.workingModel
 	property alias anySelected: _control.workingModel.anySelected
-	property alias selectedUser: _control.workingModel.selectedUser
+	property alias selectedUsers: _control.workingModel.selectedUsers
 	property alias currentRow: _control.workingModel.currentRow
 	property alias count: _control.workingModel.count
 	property alias identifier: _control.workingModel.identifier
@@ -117,10 +117,9 @@ Rectangle {
 				boxType: _control.multipleSelection ? TPRadioButtonOrCheckBox.TP_CHECKBOX : TPRadioButtonOrCheckBox.TP_NONEBOX
 				image: delegate.avatar
 				enableCheckOutsideIndicator: false
+				isChecked: delegate.selected
 				backColor: delegate.selected ? AppSettings.entrySelectedColor :
 								(delegate.index % 2 === 0 ? AppSettings.listEntryColor1 : AppSettings.listEntryColor2)
-				opacity: delegate.selected ? 1 : 0.8
-				border.color: delegate.selected ? AppSettings.fontColor : "transparent"
 				visible: delegate.itemVisible
 				width: listView.width
 				height: delegate.itemVisible ? preferredHeight : 0

@@ -120,9 +120,14 @@ TPBackRec {
 				buttonGroup.setChecked(this, true);
 		}
 		_component_completed = true;
+		let do_setup = false;
 		if (helpString.length > 0)
 			enableCheckOutsideIndicator = false;
-		if (width >= AppSettings.itemSmallHeight)
+		else if (imageWidth > 0)
+			do_setup = true;
+		if (!do_setup && width >= AppSettings.itemSmallHeight)
+			do_setup = true;
+		if (do_setup)
 			setupLayout();
 	}
 

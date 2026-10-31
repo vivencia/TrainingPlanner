@@ -40,28 +40,6 @@ ApplicationWindow {
 			}
 		}
 
-		TPCoachesAndClientsList {
-			listClients: true
-			listCoaches: true
-			listConfirmed: true
-			listAvailable: true
-			parentPage: homePage
-			currentRow: 0
-			multipleSelection: true
-			buttonString: qsTr("Go to clients page")
-			perItemButtonString: qsTr("Ulalá")
-			identifier: "Test list"
-			height: 300
-			onItemSelected: (user_idx) => console.log(AppUserModel.userId_QML(user_idx), AppUserModel.userName(user_idx));
-			onButtonClicked: ItemManager.getClientsPage();
-			onItemButtonClicked: (user_idx) => console.log(AppUserModel.userId_QML(user_idx), AppUserModel.userName(user_idx));
-			anchors {
-				left: parent.left
-				right: parent.right
-				verticalCenter: parent.verticalCenter
-			}
-		}
-
 		/*TPListView {
 		id: listView
 		listModel: ItemManager.debugLog
@@ -128,7 +106,7 @@ ApplicationWindow {
 						imageHeight: AppSettings.itemSmallHeight
 						width: imageHeight
 						height: imageHeight
-						onClicked: _control.logsModel.copyLog(delegate.index)
+						onClicked: ItemManager.debugLog.copyLog(delegate.index)
 						anchors {
 							horizontalCenter: parent.horizontalCenter
 							bottom: parent.bottom
@@ -145,7 +123,7 @@ ApplicationWindow {
 					enableCheckOutsideIndicator: false
 					font.weight: Font.Bold
 					font.pixelSize: AppSettings.fontSize
-					onChecked: (check) => _control.logsModel.setIsSelected(delegate.index, check);
+					onChecked: (check) => ItemManager.debugLog.setIsSelected(delegate.index, check);
 
 					anchors {
 						top: parent.top
@@ -160,7 +138,7 @@ ApplicationWindow {
 					horizontalAlignment: Text.AlignHCenter
 					elide: Text.ElideMiddle
 					anchors {
-						top: lblTitle.bottom
+						bottom: parent.bottom
 						left: parent.left
 						right: buttonsRec.left
 						margins: -5
@@ -190,16 +168,6 @@ ApplicationWindow {
 				}
 			}
 
-			anchors {
-				bottom: parent.bottom
-				horizontalCenter: parent.horizontalCenter
-			}
-		}
-
-		TPButton {
-			id: btnLogs
-			text: "Show logs"
-			onClicked: ItemManager.showLogs();
 			anchors {
 				bottom: parent.bottom
 				horizontalCenter: parent.horizontalCenter

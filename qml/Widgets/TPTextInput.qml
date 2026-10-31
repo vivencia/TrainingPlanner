@@ -22,7 +22,6 @@ TextField {
 	bottomPadding: 0
 	rightPadding: defaultPadding
 	placeholderTextColor: "gray"
-	implicitHeight: suggestedHeight
 
 //public:
 	property bool showClearTextButton: false
@@ -150,9 +149,9 @@ TextField {
 	function adjustHeight(): void {
 		if (heightAdjustable && text.length > 20) {
 			const textWidth = currentFontMetrics.boundingRect(text).width;
-			height = implicitHeight = textWidth > width ? (Math.ceil(textWidth/width) + 1) * suggestedHeight : suggestedHeight;
+			height = textWidth > width ? (Math.ceil(textWidth/width) + 1) * suggestedHeight : suggestedHeight;
 		} else {
-			height = implicitHeight = suggestedHeight;
+			height = suggestedHeight;
 		}
 	}
 

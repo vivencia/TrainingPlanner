@@ -13,7 +13,8 @@ Q_PROPERTY(bool showClients READ showClients WRITE setShowClients NOTIFY showCli
 Q_PROPERTY(bool showCoaches READ showCoaches WRITE setShowCoaches NOTIFY showCoachesChanged FINAL)
 Q_PROPERTY(bool showConfirmed READ showConfirmed WRITE setShowConfirmed NOTIFY showConfirmedChanged FINAL)
 Q_PROPERTY(bool showAvailable READ showAvailable WRITE setShowAvailable NOTIFY showAvailableChanged FINAL)
-Q_PROPERTY(int selectedUser READ selectedUser WRITE setSelectedUser NOTIFY selectedUserChanged FINAL)
+Q_PROPERTY(QStringList selectedUsers READ selectedUsers WRITE setSelectedUsers NOTIFY selectedUsersChanged FINAL)
+Q_PROPERTY(QString currentUser READ currentUser WRITE setCurrentUser NOTIFY currentUserChanged FINAL)
 
 public:
 	explicit UserInfoListModel(QObject *parent = nullptr);
@@ -30,7 +31,7 @@ public:
 		m_modelData = &m_otherModelData;
 		if (count() > 0) {
 			clear();
-			syncMetadata(m_modelData->count(), true);
+			syncMetadata(m_modelData->count());
 		}
 		emit layoutChanged();
 	}
@@ -41,7 +42,7 @@ public:
 		if (show != m_showClients) {
 			m_showClients = show;
 			emit showClientsChanged();
-			applyFilters();
+			applySecondaryFilters();
 		}
 	}
 	inline const bool showCoaches() const { return m_showCoaches; }
@@ -50,7 +51,7 @@ public:
 		if (show != m_showCoaches) {
 			m_showCoaches = show;
 			emit showCoachesChanged();
-			applyFilters();
+			applySecondaryFilters();
 		}
 	}
 	inline const bool showConfirmed() const { return m_showConfirmed; }
@@ -59,7 +60,7 @@ public:
 		if (show != m_showConfirmed) {
 			m_showConfirmed = show;
 			emit showConfirmedChanged();
-			applyFilters();
+			applySecondaryFilters();
 		}
 	}
 	inline const bool showAvailable() const { return m_showAvailable; }
@@ -68,11 +69,14 @@ public:
 		if (show != m_showAvailable) {
 			m_showAvailable = show;
 			emit showClientsChanged();
-			applyFilters();
+			applySecondaryFilters();
 		}
 	}
-	inline const int selectedUser() const { return realRow(currentRow()); }
-	inline void setSelectedUser(const int user_idx) { setCurrentRowViaRealRow(user_idx); }
+
+	QString currentUser() const;
+	void setCurrentUser(const QString &userid);
+	QStringList selectedUsers() const;
+	void setSelectedUsers(const QStringList &userids);
 
 	QVariant headerData(int section, Qt::Orientation orientation, int header_role) const override final;
 	const QString &dataValue(const uint real_row, const uint column) const override final;
@@ -87,7 +91,8 @@ signals:
 	void showCoachesChanged();
 	void showConfirmedChanged();
 	void showAvailableChanged();
-	void selectedUserChanged();
+	void currentUserChanged();
+	void selectedUsersChanged();
 #ifndef Q_OS_ANDROID
 	void allUsersListChanged();
 #endif

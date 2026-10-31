@@ -109,7 +109,33 @@ UserInfoListModel::UserInfoListModel(QObject *parent) : TPListModel{parent, User
 		}
 	});
 	connect(appUserModel(), &UsersManager::userModified, this, &UserInfoListModel::userModified);
-	connect(this, &TPListModel::currentRowChanged, this, &UserInfoListModel::selectedUserChanged);
+	connect(this, &TPListModel::currentRowChanged, this, &UserInfoListModel::currentUserChanged);
+	connect(this, &TPListModel::selectedChanged, this, &UserInfoListModel::selectedUsersChanged);
+}
+
+QString UserInfoListModel::currentUser() const
+{
+	return appUserModel()->userId(realRow(currentRow()));
+}
+
+void UserInfoListModel::setCurrentUser(const QString &userid)
+{
+	setCurrentRowViaRealRow(appUserModel()->userIdxFromFieldValue(UsersManager::ID, userid));
+}
+
+QStringList UserInfoListModel::selectedUsers() const
+{
+	const QList<int> &indices{selectedInfo()};
+	QStringList userids{indices.count()};
+	for (const auto &useridx : indices)
+		userids.append(std::move(appUserModel()->userId(useridx)));
+	return userids;
+}
+
+void UserInfoListModel::setSelectedUsers(const QStringList &userids)
+{
+	for (const auto &userid : userids)
+		setIsSelected(visibleRow(appUserModel()->userIdxFromFieldValue(UsersManager::ID, userid)), true);
 }
 
 const QString &UserInfoListModel::dataValue(const uint real_row, const uint column) const
@@ -164,9 +190,8 @@ void UserInfoListModel::userModified(const uint user_idx, const uint field)
 	switch (field) {
 	case USER_MODIFIED_SWITCHING:
 		beginResetModel();
-		clear();
 		endResetModel();
-		syncMetadata(appUserModel()->userCount(), true);
+		syncMetadata(appUserModel()->userCount());
 		break;
 	case USER_MODIFIED_CREATED:
 	case USER_MODIFIED_IMPORTED:

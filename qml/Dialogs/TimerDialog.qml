@@ -7,11 +7,11 @@ import TpQml.Dialogs
 import TpQml.Widgets
 
 TPPopup {
-	id: _dlg_timer
+	id: _dialog
+	objectName: "timerDialog"
 	keepAbove: true
 	backGroundImage: ":/images/backgrounds/backimage-timer.png"
 	backgroundRotation: 325
-	configFieldName: "timerDialogPosition"
 	showBorder: true
 	showTitleBar: true
 	savePopupState: true
@@ -22,8 +22,6 @@ TPPopup {
 //public:
 	property bool timePickerOnly: false
 	property bool bNegCountDown: false
-	//The user changed the input values and clicked USE before starting the timer(if ever). So we use the values provided by he user
-	property bool bTextChanged: false
 	property string windowTitle
 	property string initialTime
 
@@ -36,7 +34,6 @@ TPPopup {
 
 	onClosed: mainTimer.stopTimer();
 	onInitialTimeChanged: mainTimer.prepareTimer(initialTime);
-	onMouseItemClicked: chkStopWatch.checked = !chkStopWatch.checked;
 
 	TPTimer {
 		id: mainTimer
@@ -55,20 +52,19 @@ TPPopup {
 			id: chkStopWatch
 			text: qsTr("Stopwatch")
 			boxType: TPRadioButtonOrCheckBox.TP_CHECKBOX
-			checked: false
-			enabled: !_dlg_timer.timePickerOnly
+			enabled: !_dialog.timePickerOnly
 			Layout.topMargin: -5
 			Layout.leftMargin: 5
-			Layout.rightMargin: titleBar.width
+			Layout.rightMargin: _dialog.titleBar.width
 			Layout.fillWidth: true
 
-			onCheckedChanged: mainTimer.stopWatch = checked;
+			onChecked: (check) => mainTimer.stopWatch = check;
 		}
 
 		RowLayout {
 			spacing: 20
 			Layout.fillWidth: true
-			Layout.leftMargin: _dlg_timer.leftMarginValue
+			Layout.leftMargin: _dialog.leftMarginValue
 
 			TPTextInput {
 				id: txtHours
@@ -78,11 +74,11 @@ TPPopup {
 				inputMethodHints: Qt.ImhDigitsOnly
 				maximumLength: 2
 				horizontalAlignment: Text.AlignHCenter
-				Layout.minimumWidth: _dlg_timer.txtWidth
-				Layout.maximumWidth: _dlg_timer.txtWidth
+				Layout.minimumWidth: _dialog.txtWidth
+				Layout.maximumWidth: _dialog.txtWidth
 				Layout.alignment: Qt.AlignCenter
 
-				Keys.onPressed: (event) => _dlg_timer.processKeyEvents(event);
+				Keys.onPressed: (event) => _dialog.processKeyEvents(event);
 
 				onActiveFocusChanged: {
 					if (activeFocus) {
@@ -98,7 +94,6 @@ TPPopup {
 				onTextEdited: {
 					if (acceptableInput) {
 						if ( text.length === 2 ) {
-							_dlg_timer.bTextChanged = true;
 							txtMinutes.focus = true;
 							txtMinutes.forceActiveFocus();
 						}
@@ -151,11 +146,11 @@ TPPopup {
 				inputMethodHints: Qt.ImhDigitsOnly
 				maximumLength: 2
 				horizontalAlignment: Text.AlignHCenter
-				Layout.minimumWidth: _dlg_timer.txtWidth
-				Layout.maximumWidth: _dlg_timer.txtWidth
+				Layout.minimumWidth: _dialog.txtWidth
+				Layout.maximumWidth: _dialog.txtWidth
 				Layout.alignment: Qt.AlignCenter
 
-				Keys.onPressed: (event) => _dlg_timer.processKeyEvents(event);
+				Keys.onPressed: (event) => _dialog.processKeyEvents(event);
 
 				onActiveFocusChanged: {
 					if (activeFocus) {
@@ -171,8 +166,7 @@ TPPopup {
 				onTextEdited: {
 					if (acceptableInput) {
 						if (text.length === 2) {
-							_dlg_timer.bTextChanged = true;
-							if (!_dlg_timer.timePickerOnly) {
+							if (!_dialog.timePickerOnly) {
 								txtSecs.focus = true;
 								txtSecs.forceActiveFocus();
 							}
@@ -206,16 +200,16 @@ TPPopup {
 				id: txtSecs
 				text: mainTimer.strSeconds
 				backgroundOpacity: 0.9
-				enabled: !_dlg_timer.timePickerOnly
+				enabled: !_dialog.timePickerOnly
 				validator: IntValidator { bottom: 0; top: 59; }
 				inputMethodHints: Qt.ImhDigitsOnly
 				maximumLength: 2
 				horizontalAlignment: Text.AlignHCenter
-				Layout.minimumWidth: _dlg_timer.txtWidth
-				Layout.maximumWidth: _dlg_timer.txtWidth
+				Layout.minimumWidth: _dialog.txtWidth
+				Layout.maximumWidth: _dialog.txtWidth
 				Layout.alignment: Qt.AlignCenter
 
-				Keys.onPressed: (event) => _dlg_timer.processKeyEvents(event);
+				Keys.onPressed: (event) => _dialog.processKeyEvents(event);
 
 				onActiveFocusChanged: {
 					if (activeFocus) {
@@ -230,7 +224,6 @@ TPPopup {
 				onTextEdited: {
 					if (acceptableInput) {
 						if ( text.length === 2 ) {
-							_dlg_timer.bTextChanged = true;
 							btnStartPause.forceActiveFocus();
 						}
 					}
@@ -252,15 +245,15 @@ TPPopup {
 
 		ProgressBar {
 			id: progressBar
-			enabled: !_dlg_timer.timePickerOnly
+			enabled: !_dialog.timePickerOnly
 			from: mainTimer.totalSeconds
 			to: 0
 			value: mainTimer.progressValue
 			indeterminate: chkStopWatch.checked
 			Layout.fillWidth: true
 			Layout.preferredWidth: 6
-			Layout.rightMargin: _dlg_timer.leftMarginValue
-			Layout.leftMargin: _dlg_timer.leftMarginValue
+			Layout.rightMargin: _dialog.leftMarginValue
+			Layout.leftMargin: _dialog.leftMarginValue
 
 			background: Rectangle {
 				implicitWidth: parent.width
@@ -284,15 +277,15 @@ TPPopup {
 		RowLayout {
 			id: btnsRow
 			spacing: 5
-			Layout.leftMargin: !_dlg_timer.timePickerOnly ? btnWidth / 2 : 5
-			Layout.preferredWidth: _dlg_timer.rowWidth
+			Layout.leftMargin: !_dialog.timePickerOnly ? btnWidth / 2 : 5
+			Layout.preferredWidth: _dialog.rowWidth
 
-			readonly property int btnWidth: _dlg_timer.width / 3 - 5
+			readonly property int btnWidth: _dialog.width / 3 - 5
 
 			TPButton {
 				id: btnStartPause
 				text: mainTimer.active ? qsTr("Pause") : mainTimer.paused ? qsTr("Continue") : qsTr("Start")
-				visible: !_dlg_timer.timePickerOnly
+				visible: !_dialog.timePickerOnly
 				enabled: mainTimer.stopWatch ? true : mainTimer.totalSeconds > 0
 				Layout.preferredWidth: btnsRow.btnWidth
 
@@ -307,7 +300,7 @@ TPPopup {
 			TPButton {
 				id: btnReset
 				text: qsTr("Reset")
-				enabled: !_dlg_timer.timePickerOnly
+				enabled: !_dialog.timePickerOnly
 				Layout.preferredWidth: btnsRow.btnWidth
 				Layout.alignment: Qt.AlignHCenter
 
@@ -317,13 +310,13 @@ TPPopup {
 			TPButton {
 				id: btnDone
 				text: qsTr("Done")
-				visible: _dlg_timer.timePickerOnly
+				visible: _dialog.timePickerOnly
 				Layout.alignment: Qt.AlignHCenter
 
 				onClicked: {
-					if (_dlg_timer.timePickerOnly)
-						_dlg_timer.useTime(mainTimer.strHours + ":" + mainTimer.strMinutes);
-					_dlg_timer.closePopup(0);
+					if (_dialog.timePickerOnly)
+						_dialog.useTime(mainTimer.strHours + ":" + mainTimer.strMinutes);
+					_dialog.closePopup(0);
 				} //btnClose
 			}
 		} //Row
@@ -333,14 +326,13 @@ TPPopup {
 		switch (event.key) {
 		case Qt.Key_Enter:
 		case Qt.Key_Return:
-			if (!_dlg_timer.timePickerOnly) {
+			if (!_dialog.timePickerOnly) {
 				if (btnStartPause.enabled) {
 					btnStartPause.forceActiveFocus();
 					btnStartPause.clicked();
 				}
 			} else {
-				bTextChanged = true;
-				_dlg_timer.closePopup(-1);
+				_dialog.closePopup(-1);
 			}
 			break;
 		}

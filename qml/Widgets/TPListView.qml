@@ -20,7 +20,7 @@ Item {
 	property bool canSort: showHeader
 	property alias delegate: _listView.delegate
 	property alias spacing: _listView.spacing
-	//readonly property alias vBar: _vBar
+	property alias currentIndex: _listView.currentIndex
 	readonly property int minimumHeight: _headerLoader.height + (listModel.visibleCount > 0
 								? 40 + AppSettings.itemLargeHeight + delegates_height / listModel.visibleCount : 0)
 	readonly property int contentHeight: _listView.contentHeight + _headerLoader.height
@@ -90,14 +90,6 @@ Item {
 				}
 			}
 		}
-
-		/*Connections {
-			target: _control.listModel
-			function onItemAdded(index: int): void {
-				if (_control.listModel.itemIsVisible(index))
-					_listView.positionViewAtIndex(index, ListView.Center)
-			}
-		}*/
 
 		anchors {
 			top: _control.showHeader ? _headerLoader.bottom : parent.top

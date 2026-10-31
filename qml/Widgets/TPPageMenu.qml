@@ -95,14 +95,13 @@ TPPopup {
 						_context.moveTo(width, 0);
 						_context.lineTo(width, height);
 						_context.lineTo(0, height / 2);
-					}
-					else {
+					} else {
 						_context.moveTo(0, 0);
 						_context.lineTo(0, height);
 						_context.lineTo(width, height / 2);
 					}
 					_context.closePath();
-					_context.fillStyle = _menu.enabled ? AppSettings.fontColor : AppSettings.disabledFontColor
+					_context.fillStyle = _menu.enabled ? AppSettings.fontColor : AppSettings.disabledFontColor;
 					_context.fill();
 				}
 
@@ -201,6 +200,8 @@ TPPopup {
 					_menu.menuEntrySelected(entriesListModel.get(delegate.index).btn_id);
 					_menu.expanded = false;
 					delegate.height = AppSettings.itemDefaultHeight
+					if (!_menu.showIndicator)
+						_menu.close();
 				}
 			}
 		} //ItemDelegate
@@ -299,12 +300,12 @@ TPPopup {
 			if (entriesList[i].btn_id === btn_id) {
 				if (entriesList[i].visible !== visibility) {
 					entriesList[i].visible = visibility;
-					if (!visibility)
+					if (!visibility) {
 						entriesListModel.remove(getModelIndexFromId(entriesList[i].btn_id));
-					else {
-						if (i === 0)
+					} else {
+						if (i === 0) {
 							entriesListModel.insert(0, entriesList[0]);
-						else {
+						} else {
 							let x = i - 1;
 							while (!entriesList[x].visible) {
 								if (--x < 0) {

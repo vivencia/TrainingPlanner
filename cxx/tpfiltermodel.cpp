@@ -34,9 +34,11 @@ TPFilterModel::TPFilterModel(TPListModel *parent)
 			for (uint i{0}; i < m_filterElements.count(); ++i) {
 				if (!m_filterElements.at(i).values.isEmpty()) {
 					const QPair<bool,QString> &value{m_getData(index, m_filterElements.at(index).field)};
-					if (!hasValue(m_filterElements.at(i), value.second)) {
-						m_filterElements[i].selected_values.append(false);
-						m_filterElements[i].values.append(std::move(value.second));
+					if (!value.second.isEmpty()) {
+						if (!hasValue(m_filterElements.at(i), value.second)) {
+							m_filterElements[i].selected_values.append(false);
+							m_filterElements[i].values.append(std::move(value.second));
+						}
 					}
 				}
 			}

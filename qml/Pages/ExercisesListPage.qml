@@ -25,12 +25,9 @@ TPPage {
 
 	signal exerciseChosen();
 
-	onPageActivated: if (AppExercisesList.count > 0)
-						 exercisesList.simulateMouseClick(0, true);
-
 	ExercisesListView {
 		id: exercisesList
-		enableMultipleSelection: exercisesPage.chooseButtonEnabled
+		canSelectItems: exercisesPage.chooseButtonEnabled
 		parentPage: exercisesPage as TPPage
 		height: exercisesPage.height * 0.5
 
@@ -43,15 +40,10 @@ TPPage {
 			rightMargin: 5
 		}
 
-		onExerciseEntrySelected: (index) => {
-			txtExerciseName.text = AppExercisesList.mainName(index);
-			txtExerciseSubName.text = AppExercisesList.subName(index);
-			txtMuscularGroup.text = AppExercisesList.muscularGroup(index);
-		}
-
-		onItemDoubleClicked: {
-			if (btnChooseExercise.enabled)
-				exercisesPage.chooseExercise();
+		onCurrentIndexChanged: {
+			txtExerciseName.text = AppExercisesList.mainName();
+			txtExerciseSubName.text = AppExercisesList.subName();
+			txtMuscularGroup.text = AppExercisesList.muscularGroup();
 		}
 	}
 
@@ -139,7 +131,7 @@ TPPage {
 			bottom: parent.bottom
 			margins: 5
 		}
-		readonly property int buttonWidth: (parent.width - 10) * 0.25
+		readonly property int buttonWidth: parent.width / 3 - 10
 
 		TPButton {
 			id: btnNewExercise
@@ -160,8 +152,7 @@ TPPage {
 					exercisesList.enabled = false;
 					text = qsTr("Cancel");
 					AppExercisesList.newExercise();
-				}
-				else {
+				} else {
 					AppExercisesList.removeRow(AppExercisesList.currentRow);
 					exercisesPage._new = false;
 					exercisesPage._can_edit = false;
@@ -186,8 +177,7 @@ TPPage {
 					txtExerciseName.forceActiveFocus();
 					exercisesList.enabled = false;
 					text = qsTr("Cancel");
-				}
-				else {
+				} else {
 					exercisesPage._can_edit = false;
 					exercisesPage._editing = false;
 					exercisesList.enabled = true;
@@ -210,44 +200,5 @@ TPPage {
 	function chooseExercise(): void {
 		exerciseChosen();
 		ItemManager.appPagesManager.prevPage();
-	}
-
-	FileOperations {
-		id: fileOps
-		fileType: AppUtils.FT_TP_EXERCISES
-	}
-
-	TPPageMenu {
-		id: pageMenu
-		parentPage: exercisesPage
-		entriesList: [
-			{ "label": qsTr("Import"), "image": "download_", "btn_id": TPFileOps.OT_Custom_1, "enabled": enabledCondition(0) },
-			{ "label": qsTr("Save as"), "image": "download_", "btn_id": TPFileOps.OT_Download, "enabled": enabledCondition(1) },
-			{ "label": qsTr("Send to"), "image": "attach_", "btn_id": TPFileOps.OT_Forward, "enabled": enabledCondition(2) },
-			{ "label": qsTr("Share"), "image": "share_", "btn_id": TPFileOps.OT_Share, "enabled": enabledCondition(3) },
-		]
-		onMenuEntrySelected: (btn_id) => {
-			switch (btn_id) {
-			case TPFileOps.OT_Custom_1: exercisesPage.exercisesManager.importExercises(); break;
-			default: fileOps.doFileOperation(btn_id); break;
-			}
-		}
-
-		function enabledCondition(menu_entry: int): bool {
-			switch (menu_entry) {
-			case 0: return true;
-			case 1:
-			case 2: return !exercisesPage.chooseButtonEnabled;
-			case 3: return !exercisesPage.chooseButtonEnabled && Qt.platform.os === "android";
-			}
-		}
-
-		Connections {
-			target: exercisesPage
-			function onChooseButtonEnabledChanged(): void {
-				for (let i = 1; i <= 3; ++i)
-					pageMenu.enableEntry(i, pageMenu.enabledCondition(i));
-			}
-		}
 	}
 } // Page

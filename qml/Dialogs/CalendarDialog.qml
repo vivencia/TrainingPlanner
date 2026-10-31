@@ -11,9 +11,13 @@ import TpQml.Widgets
 TPPopup {
     id: _control
 	keepAbove: !simpleCalendar
-	width: datePickerControl.width
-	height: mainLayout.childrenRect.height
+	minimum_size: Qt.size(datePickerControl.minimumWidth, datePickerControl.minimumHeight + 100 + AppSettings.itemDefaultHeight)
+	width: minimum_size.width
+	height: minimum_size.height
 	open_in_window: true
+	show_position: Qt.AlignCenter
+	resizeable: true
+	mouseItem: bottomBar
 
 //public:
 	property date initDate
@@ -49,9 +53,14 @@ TPPopup {
 		to: _control.finalDate
 	}
 
-	ColumnLayout {
-		id: mainLayout
-		spacing: 5
+	TPDatePicker {
+		id: datePickerControl
+		focus: true
+		startDate: _control.initDate
+		selectedDate: _control.showDate
+		endDate: _control.finalDate
+		qtCalendarModel: calModel
+		height: (_control.height - bottomBar.height) * 0.65
 
 		anchors {
 			top: parent.top
@@ -59,57 +68,69 @@ TPPopup {
 			right: parent.right
 		}
 
-		TPDatePicker {
-			id: datePickerControl
-			focus: true
-			startDate: _control.initDate
-			selectedDate: _control.showDate
-			endDate: _control.finalDate
-			qtCalendarModel: calModel
+		Component.onCompleted: datePickerControl.setDate(_control.showDate);
+	}
 
-			Component.onCompleted: datePickerControl.setDate(_control.showDate);
+	ListView {
+		id: calMethodsList
+		delegateModelAccess: DelegateModel.ReadOnly
+		spacing: 2
+		height: (_control.height - bottomBar.height) * 0.3
+
+		model: CalendarMethods {
+			id: calendarMethods
+			date: _control.showDate
 		}
 
-		ListView {
-			id: calMethodsList
-			model: CalendarMethods {
-				id: calendarMethods
-				date: _control.showDate
-			}
-			Layout.fillWidth: true
-			Layout.preferredHeight: 100
-
-			delegate: ItemDelegate {
-				id: delegate
-				width: calMethodsList.width
-				height: AppSettings.itemLargeHeight
-
-				required property int index
-				required property string label
-
-				contentItem: TPLabel {
-					text: delegate.label
-					elide: Text.ElideMiddle
-					wrapMode: Text.NoWrap
-					horizontalAlignment: Text.AlignHCenter
-				}
-
-				background: Rectangle {
-					id:	backgroundColor
-					color: delegate.index % 2 === 0 ? AppSettings.listEntryColor1 : AppSettings.listEntryColor2
-					radius: 6
-					opacity: 1
-				}
-
-				onClicked: datePickerControl.setDate(calendarMethods.resultDate(index));
-			}
+		anchors {
+			top: datePickerControl.bottom
+			left: parent.left
+			right: parent.right
+			margins: 5
 		}
+
+		delegate: ItemDelegate {
+			id: delegate
+			width: calMethodsList.width
+			height: AppSettings.itemLargeHeight
+
+			required property int index
+			required property string label
+
+			contentItem: TPLabel {
+				text: delegate.label
+				elide: Text.ElideMiddle
+				wrapMode: Text.NoWrap
+				horizontalAlignment: Text.AlignHCenter
+			}
+
+			background: Rectangle {
+				id:	backgroundColor
+				color: delegate.index % 2 === 0 ? AppSettings.listEntryColor1 : AppSettings.listEntryColor2
+				radius: 8
+			}
+
+			onClicked: datePickerControl.setDate(calendarMethods.resultDate(index));
+		}
+	}
+
+	Rectangle {
+		id: bottomBar
+		color: AppSettings.paneBackgroundColor
+		radius: 8
+		height: AppSettings.itemDefaultHeight
+		width: parent.width
+		anchors.bottom: parent.bottom
 
 		TPButton {
 			id: btnOK
 			text: "OK"
-			Layout.alignment: Qt.AlignCenter
+			flat: true
 
+			anchors {
+				verticalCenter: parent.verticalCenter
+				horizontalCenter: parent.horizontalCenter
+			}
 			onClicked: _control.selectDate();
 		}
 	}

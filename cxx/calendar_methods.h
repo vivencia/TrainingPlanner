@@ -18,6 +18,7 @@ Q_PROPERTY(QDate date READ date WRITE setDate NOTIFY dateChanged FINAL)
 public:
 
 	enum Methods {
+		Reset,
 		Today,
 		Tomorrow,
 		Yesterday,
@@ -59,13 +60,16 @@ public:
 	inline void setDate(const QDate &new_date)
 	{
 		if (m_date != new_date) {
-			m_date = new_date;
+			m_date = m_currentDate = new_date;
 			createMethods();
 			emit dateChanged();
 		}
 	}
 
-	Q_INVOKABLE inline QDate resultDate(const int method_index) const { return m_calMethods.at(method_index).methodFunciton(); }
+	Q_INVOKABLE inline QDate resultDate(const int method_index)
+	{
+		return (m_currentDate = std::move(m_calMethods.at(method_index).methodFunciton()));
+	}
 
 	inline QHash<int, QByteArray> roleNames() const override final { return m_roleNames; }
 	QVariant data(const QModelIndex &index, int role) const override final
@@ -83,33 +87,33 @@ signals:
 	void dateChanged();
 
 private:
-	QDate m_date;
+	QDate m_date, m_currentDate;
 	QHash<int, QByteArray> m_roleNames;
 	QList<st_methodData> m_calMethods;
 
 	void createMethods()
 	{
 		m_calMethods = std::move(QList<st_methodData>{
-			st_methodData{m_date == QDate::currentDate() ? tr("Today") :
-								appUtils()->formatDate(m_date, TPUtils::DF_LOCALE), [this] () -> QDate { return m_date; }},
+			st_methodData{tr("Reset"), [this] () -> QDate { return m_date; }},
+			st_methodData{tr("Today"), [this] () -> QDate { return QDate::currentDate(); }},
 			st_methodData{m_date == QDate::currentDate() ? tr("Tomorrow"): tr("The next day"),
-																		[this] () -> QDate { return m_date.addDays(1); }},
+															[this] () -> QDate { return m_currentDate.addDays(1); }},
 			st_methodData{m_date == QDate::currentDate() ? tr("Yesterday") : tr("The previous days"),
-																		[this] () -> QDate { return m_date.addDays(-1); }},
-			st_methodData{tr("Next week"), [this] () -> QDate { return m_date.addDays(7); }},
-			st_methodData{tr("Previous week"), [this] () -> QDate { return m_date.addDays(-7); }},
-			st_methodData{tr("Two weeks ahead"), [this] () -> QDate { return m_date.addDays(14); }},
-			st_methodData{tr("Two week before"), [this] () -> QDate { return m_date.addDays(-14); }},
-			st_methodData{tr("15 days ahead"), [this] () -> QDate { return m_date.addDays(15); }},
-			st_methodData{tr("15 days before"), [this] () -> QDate { return m_date.addDays(-15); }},
-			st_methodData{tr("Next month"), [this] () -> QDate { return m_date.addMonths(1); }},
-			st_methodData{tr("Previous month"), [this] () -> QDate { return m_date.addMonths(-1); }},
-			st_methodData{tr("30 days ahead"), [this] () -> QDate { return m_date.addDays(30); }},
-			st_methodData{tr("30 days before"), [this] () -> QDate { return m_date.addDays(-30); }},
-			st_methodData{tr("Two months ahead"), [this] () -> QDate { return m_date.addMonths(2); }},
-			st_methodData{tr("Two months before"), [this] () -> QDate { return m_date.addMonths(-2); }},
-			st_methodData{tr("60 days ahead"), [this] () -> QDate { return m_date.addDays(60); }},
-			st_methodData{tr("60 days before"), [this] () -> QDate { return m_date.addDays(-60); }},
+															[this] () -> QDate { return m_currentDate.addDays(-1); }},
+			st_methodData{tr("Next week"), [this] () -> QDate { return m_currentDate.addDays(7); }},
+			st_methodData{tr("Previous week"), [this] () -> QDate { return m_currentDate.addDays(-7); }},
+			st_methodData{tr("Two weeks ahead"), [this] () -> QDate { return m_currentDate.addDays(14); }},
+			st_methodData{tr("Two week before"), [this] () -> QDate { return m_currentDate.addDays(-14); }},
+			st_methodData{tr("15 days ahead"), [this] () -> QDate { return m_currentDate.addDays(15); }},
+			st_methodData{tr("15 days before"), [this] () -> QDate { return m_currentDate.addDays(-15); }},
+			st_methodData{tr("Next month"), [this] () -> QDate { return m_currentDate.addMonths(1); }},
+			st_methodData{tr("Previous month"), [this] () -> QDate { return m_currentDate.addMonths(-1); }},
+			st_methodData{tr("30 days ahead"), [this] () -> QDate { return m_currentDate.addDays(30); }},
+			st_methodData{tr("30 days before"), [this] () -> QDate { return m_currentDate.addDays(-30); }},
+			st_methodData{tr("Two months ahead"), [this] () -> QDate { return m_currentDate.addMonths(2); }},
+			st_methodData{tr("Two months before"), [this] () -> QDate { return m_currentDate.addMonths(-2); }},
+			st_methodData{tr("60 days ahead"), [this] () -> QDate { return m_currentDate.addDays(60); }},
+			st_methodData{tr("60 days before"), [this] () -> QDate { return m_currentDate.addDays(-60); }},
 		});
 	}
 };

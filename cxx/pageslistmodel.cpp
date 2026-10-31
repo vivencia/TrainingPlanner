@@ -112,7 +112,7 @@ void PagesListModel::openPage(QQuickItem *page, QString &&label, const std::func
 	beginInsertRows(QModelIndex{}, count(), count());
 	pageInfo *pageinfo{new pageInfo};
 	if (!label.isEmpty())
-		pageinfo->displayText = std::move(label);
+		pageinfo->displayText = std::forward<QString>(label);
 	if (clean_up_func)
 		pageinfo->cleanUpFunc = clean_up_func;
 	pageinfo->page = page;

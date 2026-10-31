@@ -2,7 +2,7 @@
 
 #include "dbexerciseslistmodel.h"
 
-constexpr int n_fields{EXERCISES_LIST_N_FIELDS};
+constexpr int n_fields{DBExercisesListModel::N_FIELDS};
 constexpr QLatin1StringView table_name{ "exercises_table"_L1 };
 constexpr QLatin1StringView field_names[n_fields][2] {
 	{"id"_L1,				"INTEGER PRIMARY KEY AUTOINCREMENT"_L1},
@@ -10,9 +10,6 @@ constexpr QLatin1StringView field_names[n_fields][2] {
 	{"secondary_name"_L1,	"TEXT"_L1},
 	{"muscular_group"_L1,	"TEXT"_L1},
 	{"media_path"_L1,		"TEXT"_L1},
-	{"from_list"_L1,		"INTEGER"_L1},
-	{"actual_index"_L1,		"INTEGER"_L1},
-	{"selected"_L1			"INTEGER"_L1},
 };
 
 DBExercisesListTable::DBExercisesListTable(DBModelInterfaceExercisesList *dbmi)
@@ -41,11 +38,9 @@ bool DBExercisesListTable::getAllExercises(void *data)
 		if (m_workingQuery.first()) {
 			DBModelInterfaceExercisesList *dbmi{static_cast<DBModelInterfaceExercisesList*>(data)};
 			do {
-				QStringList data{EXERCISES_LIST_N_FIELDS};
-				for (uint i{EXERCISES_LIST_FIELD_ID}; i < EXERCISES_LIST_FIELD_ACTUALINDEX; ++i)
+				QStringList data{n_fields};
+				for (uint i{DBExercisesListModel::ID}; i < n_fields; ++i)
 					data[i] = std::move(m_workingQuery.value(static_cast<int>(i)).toString());
-				data[EXERCISES_LIST_FIELD_ACTUALINDEX] = std::move(QString::number(dbmi->modelData().count()));
-				data[EXERCISES_LIST_FIELD_SELECTED] = std::move("0"_L1);
 				dbmi->modelData().append(std::move(data));
 			} while (m_workingQuery.next ());
 			success = true;

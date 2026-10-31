@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Layouts
 
 import TpQml
 import TpQml.User
@@ -6,14 +7,19 @@ import TpQml.Widgets
 
 TPPopup {
 	id: _dialog
-	width: AppSettings.pageWidth - 20
-	height: AppSettings.pageHeight * 0.4
+	objectName: "SendFileToDialog"
 	keepAbove: true
 	useShape: true
 	showBorder: true
 	showTitleBar: true
 	open_in_window: true
-	canSlideToClose: true
+	resizeable: true
+	normal_size: Qt.size(AppSettings.pageWidth * 0.8, AppSettings.pageHeight * 0.4)
+	minimum_size: normal_size
+	width: normal_size.width
+	height: normal_size.height
+	show_position: Qt.AlignBaseline
+	savePopupState: true
 
 //public:
 	property int handle
@@ -24,29 +30,23 @@ TPPopup {
 //private:
 	readonly property int _button_size: width * 0.5 - 25
 
-	onOpened: {
-		usersList.reset();
-		usersList.setSelectedUsers(selectedUsers);
-	}
+	onOpened: usersList.selectedUsers = selectedUsers;
 	onCloseActionExeced: selectedOptions(AppUtils.MH_UNKOWN, ["no selection"], "", false);
 
-	Column {
+	ColumnLayout {
 		id: mainLayout
 		spacing: 5
-		padding: 5
+
 		anchors {
 			fill: parent
-			leftMargin: 5
-			rightMargin: 15
-			topMargin: 5
+			margins: 5
 		}
 
 		TPLabel {
 			id: lblTitle
 			text: qsTr("Send file to...")
 			horizontalAlignment: Text.AlignHCenter
-			height: AppSettings.itemDefaultHeight
-			width: parent.width - AppSettings.itemDefaultHeight - 5
+			Layout.preferredWidth: parent.width - _dialog.titleBarWidth - 5
 		}
 
 		TPCoachesAndClientsList {
@@ -54,27 +54,28 @@ TPPopup {
 			listClients: true
 			listCoaches: true
 			listConfirmed: true
+			parentPage: _dialog.parentPage
 			enabled: _dialog.selectedUsers.length === 0
-			width: parent.width
-			height: parent.height - txtMessage.height - 4 * AppSettings.itemDefaultHeight
+			Layout.fillWidth: true
+			Layout.preferredHeight: parent.height - txtMessage.height - 4 * AppSettings.itemDefaultHeight
 		}
 
 		TPLabel {
 			text: qsTr("Message:")
-			width: parent.width
-			height: AppSettings.itemDefaultHeight
+			Layout.fillWidth: true
+			Layout.preferredHeight: AppSettings.itemDefaultHeight
 		}
 
 		TPTextInput {
 			id: txtMessage
 			text: _dialog.message
 			showClearTextButton: true
-			width: parent.width
+			Layout.fillWidth: true
 		}
 
 		Item {
-			width: parent.width
-			height: AppSettings.itemDefaultHeight
+			Layout.fillWidth: true
+			Layout.preferredHeight: AppSettings.itemDefaultHeight
 
 			states: [
 				State {

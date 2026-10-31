@@ -212,14 +212,13 @@ void QmlItemManager::getExercisesPage(QmlWorkoutInterface *connectPage)
 	m_exercisesListManager->getExercisesPage(connectPage);
 }
 
-void QmlItemManager::showSimpleExercisesList(QQuickItem *parentPage, const QString &filter)
+void QmlItemManager::showSimpleExercisesList(QQuickItem *parentPage, const QString &muscular_group)
 {
-	appExercisesList()->setFilter(filter);
 	if (!m_simpleExercisesListComponent) {
-		m_simpleExercisesListComponent = new QQmlComponent{appQmlEngine(), "TpQml.Exercises"_L1, "SimpleExercisesListPanel"_L1,
-																							QQmlComponent::Asynchronous};
-		connect(m_simpleExercisesListComponent, &QQmlComponent::statusChanged, this, [this,parentPage,filter]
-										(QQmlComponent::Status status) { showSimpleExercisesList(parentPage, filter); });
+		m_simpleExercisesListComponent = new QQmlComponent{appQmlEngine(), "TpQml.Exercises"_L1,
+												"SimpleExercisesListPanel"_L1, QQmlComponent::Asynchronous};
+		connect(m_simpleExercisesListComponent, &QQmlComponent::statusChanged, this, [this,parentPage,muscular_group]
+							(QQmlComponent::Status status) { showSimpleExercisesList(parentPage, muscular_group); });
 
 	} else {
 		if (!m_simpleExercisesList) {
@@ -230,7 +229,7 @@ void QmlItemManager::showSimpleExercisesList(QQuickItem *parentPage, const QStri
 										m_simpleExercisesListProperties, appQmlEngine()->rootContext());
 				appQmlEngine()->setObjectOwnership(m_simpleExercisesList, QQmlEngine::CppOwnership);
 				connect(m_simpleExercisesList, SIGNAL(exerciseSelected(QQuickItem*)), this, SIGNAL(selectedExerciseFromSimpleExercisesList(QQuickItem*)));
-				showSimpleExercisesList(parentPage, filter);
+				showSimpleExercisesList(parentPage, muscular_group);
 				break;
 			case QQmlComponent::Loading:
 				break;
@@ -242,11 +241,11 @@ void QmlItemManager::showSimpleExercisesList(QQuickItem *parentPage, const QStri
 				break;
 			}
 		} else {
-			appExercisesList()->setFilter(filter);
+			appExercisesList()->setMuscularGroupFilter(muscular_group);
 			int name_field_ypos{0};
 			QMetaObject::invokeMethod(parentPage, "getExerciseNameFieldYPos", Q_RETURN_ARG(int, name_field_ypos));
 			appPagesListModel()->openPopup(m_simpleExercisesList, parentPage,
-					name_field_ypos <= appSettings()->pageHeight() / 2 ? Qt::AlignTop : Qt::AlignBaseline);
+					name_field_ypos <= appSettings()->pageHeight() / 2 ? Qt::AlignTop : Qt::AlignBottom);
 		}
 	}
 }
@@ -703,11 +702,11 @@ bool QmlItemManager::runTests()
 	//log(TPLogs::LT_DEBUG, "TPListModel Tests"_L1, std::move("Title %1"_L1.arg(QString::number(11))), std::move("Message %1"_L1.arg(QString::number(11))));
 	//for (uint i{0}; i < 10; ++i) {
 	//	log(TPLogs::LT_DEBUG, "TPListModel Tests"_L1, i % 2 == 0 ? std::move("Title %1"_L1.arg(QString::number(i)))
-	//		: std::move("Header %1"_L1.arg(QString::number(i))), i % 2 == 0 ? std::move("Message %1"_L1.arg(QString::number(10-i)))
-	//		: std::move("Content %1"_L1.arg(QString::number(10-i))));
+//			: std::move("Header %1"_L1.arg(QString::number(i))), i % 2 == 0 ? std::move("Message %1"_L1.arg(QString::number(10-i)))
+//			: std::move("Content %1"_L1.arg(QString::number(10-i))));
 		//log(TPLogs::LT_DEBUG, "TPListModel Tests"_L1, std::move("Title %1"_L1.arg(QString::number(i))),
 		//					std::move("Message %1"_L1.arg(QString::number(10-i))));
-	//}
+//	}
 	return false;
 }
 #endif

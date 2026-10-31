@@ -8,9 +8,9 @@ import TpQml
 Rectangle {
 	id: _control
 	clip: true
-	height: cellSize * 10.5
-	width: cellSize * 8
-	radius: 10
+	height: minimumWidth
+	width: minimumHeight
+	radius: 8
 
 //public:
 	property CalendarModel qtCalendarModel
@@ -18,14 +18,15 @@ Rectangle {
 	property date startDate
 	property date endDate
 	property date selectedDate
+	readonly property int minimumWidth: 200
+	readonly property int minimumHeight: 250
 
 	signal dateSelected(date selDate)
 
 //private:
-	readonly property double _size_factor: 7
 	readonly property date thisDay: new Date()
-	readonly property double cellSize: Screen.pixelDensity * _size_factor
-	readonly property int fontSizePx: _control.cellSize * (_size_factor / 21) //0.32
+	readonly property double cellSize: width/8
+	readonly property int fontSizePx: _control.cellSize / 2
 
 	TPBackRec {
 		id: titleOfDate
@@ -113,8 +114,8 @@ Rectangle {
 
 		TextField {
 			id: txtSelectedWeekDayAndMonth
-			text: AppUtils.dayName(_control.selectedDate.getUTCDay()).slice(0, 3) + ", " + _control.selectedDate.getUTCDate() +
-															" " + AppUtils.monthName(_control.selectedDate.getUTCMonth()).slice(0, 3)
+			text: AppUtils.dayName(_control.selectedDate.getUTCDay()).slice(0, 3) + ", " +
+				_control.selectedDate.getUTCDate() + " " + AppUtils.monthName(_control.selectedDate.getUTCMonth()).slice(0, 3)
 			leftPadding: _control.cellSize * 0.5
 			horizontalAlignment: Text.AlignLeft
 			verticalAlignment: Text.AlignVCenter
@@ -170,9 +171,9 @@ Rectangle {
 						if (i > _control.startDate.getUTCMonth())
 							continue;
 					}
-					if (text.length === 0)
+					if (text.length === 0) {
 						monthsModel.append({name: AppUtils.monthName(i)});
-					else {
+					} else {
 						const found = AppUtils.monthName(i).toLowerCase().indexOf(text.toLowerCase()) >= 0;
 						if (found) {
 							monthsModel.append({name: AppUtils.monthName(i)});
@@ -392,8 +393,7 @@ Rectangle {
 			selectedYear.text = Qt.binding(function() { return _control.selectedDate.getUTCFullYear(); });
 			selectedYear.readOnly = true;
 			yearsList.hide();
-		}
-		else {
+		} else {
 			selectedYear.readOnly = false;
 			selectedYear.clear();
 			selectedYear.forceActiveFocus();
@@ -410,8 +410,7 @@ Rectangle {
 			txtSelectedWeekDayAndMonth.readOnly = true;
 			monthsList.hide();
 			_control.forceActiveFocus();
-		}
-		else {
+		} else {
 			txtSelectedWeekDayAndMonth.readOnly = false;
 			txtSelectedWeekDayAndMonth.clear();
 			txtSelectedWeekDayAndMonth.forceActiveFocus();
@@ -464,8 +463,7 @@ Rectangle {
 				selectedDate = new Date(selectedDate.getUTCFullYear(), selectedDate.getUTCMonth(), day);
 				dateSelected(selectedDate);
 			}
-		}
-		else {
+		} else {
 			let typed_day = selectedDate.getUTCDate();
 			switch (typed_day) {
 			case 0:

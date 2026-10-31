@@ -1,35 +1,20 @@
 #pragma once
 
+#include "tplistmodel.h"
 #include "dbmodelinterface.h"
 #include "qml_singleton.h"
 
 #include <QAbstractListModel>
 #include <QQmlEngine>
 
-enum ExerciseListFields {
-	EXERCISES_LIST_FIELD_ID,
-	EXERCISES_LIST_FIELD_MAINNAME,
-	EXERCISES_LIST_FIELD_SUBNAME,
-	EXERCISES_LIST_FIELD_MUSCULARGROUP,
-	EXERCISES_LIST_FIELD_MEDIAPATH,
-	EXERCISES_LIST_FIELD_FROMAPPLIST,
-	EXERCISES_LIST_FIELD_ACTUALINDEX,
-	EXERCISES_LIST_FIELD_SELECTED,
-	EXERCISES_LIST_N_FIELDS
-};
-
 QT_FORWARD_DECLARE_CLASS(DBExercisesListTable)
 QT_FORWARD_DECLARE_CLASS(DBModelInterfaceExercisesList);
 QT_FORWARD_DECLARE_CLASS(TPFilePath)
 
-class DBExercisesListModel : public QAbstractListModel
+class DBExercisesListModel : public TPListModel
 {
 
 Q_OBJECT
-
-Q_PROPERTY(uint count READ count NOTIFY countChanged)
-Q_PROPERTY(int currentRow READ currentRow WRITE setCurrentRow NOTIFY currentRowChanged)
-Q_PROPERTY(bool hasExercises READ hasExercises NOTIFY hasExercisesChanged FINAL)
 
 Q_PROPERTY(QString exerciseNameLabel READ exerciseNameLabel NOTIFY labelsChanged)
 Q_PROPERTY(QString exerciseSpecificsLabel READ exerciseSpecificsLabel NOTIFY labelsChanged)
@@ -37,8 +22,18 @@ Q_PROPERTY(QString muscularGroupsLabel READ muscularGroupsLabel NOTIFY labelsCha
 Q_PROPERTY(QString mediaLabel READ mediaLabel NOTIFY labelsChanged)
 
 public:
+	enum ExerciseListFields {
+		ID,
+		MAINNAME,
+		SUBNAME,
+		MUSCULARGROUP,
+		MEDIAPATH,
+		N_FIELDS
+	};
+
+	Q_DISABLE_COPY_MOVE(DBExercisesListModel)
 	explicit DBExercisesListModel(QObject *parent = nullptr);
-	void initExercisesList();
+	Q_INVOKABLE void initExercisesList();
 
 	inline QString exerciseNameLabel() const { return tr("Exercise: "); }
 	inline QString exerciseSpecificsLabel() const { return tr("Specifics: "); }
@@ -46,66 +41,31 @@ public:
 	inline QString mediaLabel() const { return tr("Descriptive media: "); }
 	std::shared_ptr<TPFilePath> suggestedName() const;
 
-	inline const int _id(const uint index) const { return id(index).toUInt(); }
-	Q_INVOKABLE QString id(const uint index) const;
-	Q_INVOKABLE void setId(const uint index, const QString &new_id);
-	Q_INVOKABLE QString mainName(const uint index) const;
+	Q_INVOKABLE inline QString mainName() const
+	{
+		return exerciseData(MAINNAME, currentRow());
+	}
 	Q_INVOKABLE void setMainName(const uint index, const QString &new_name);
-	Q_INVOKABLE QString subName(const uint index) const;
+	Q_INVOKABLE inline QString subName() const
+	{
+		return exerciseData(SUBNAME, currentRow());
+	}
 	Q_INVOKABLE void setSubName(const uint index, const QString &new_subname);
-	Q_INVOKABLE QString muscularGroup(const int index) const;
+	Q_INVOKABLE inline QString muscularGroup() const
+	{
+		return exerciseData(MUSCULARGROUP, currentRow());
+	}
 	Q_INVOKABLE void setMuscularGroup(const uint index, const QString &new_group);
-	Q_INVOKABLE QString mediaPath(const uint index) const;
+	Q_INVOKABLE inline QString mediaPath() const
+	{
+		return exerciseData(MEDIAPATH, currentRow());
+	}
 	Q_INVOKABLE void setMediaPath(const uint index, const QString &new_path);
-	Q_INVOKABLE uint actualIndex(const uint index) const;
-	Q_INVOKABLE void setActualIndex(const uint index, const uint new_index);
-	Q_INVOKABLE bool isSelected(const uint index) const;
-	Q_INVOKABLE void setSelected(const uint index, const bool selected);
-
-	inline uint count() const {
-		if (m_searchFilterApplied)
-			return m_searchFilteredIndices.count();
-		else {
-			if (m_muscularFilterApplied)
-				return m_muscularFilteredIndices.count();
-			else
-				return m_exercisesData.count();
-		}
-	}
-
-	inline int currentRow() const { return m_currentRow; }
-	void setCurrentRow(const int row);
-
-	Q_INVOKABLE inline int currentRealRow() const {
-		if (m_currentRow == -1)
-			return -1;
-		if (m_searchFilterApplied)
-			return m_exercisesData.at(m_searchFilteredIndices.at(m_currentRow)).at(EXERCISES_LIST_FIELD_SELECTED).toUInt();
-		else {
-			if (m_muscularFilterApplied)
-				return m_exercisesData.at(m_muscularFilteredIndices.at(m_currentRow)).at(EXERCISES_LIST_FIELD_SELECTED).toUInt();
-			else
-				return m_currentRow;
-		}
-	}
-
-	bool hasExercises() const { return !m_exercisesData.isEmpty(); };
 
 	Q_INVOKABLE void newExercise(const QString &name = QString{}, const QString &subname = QString{},
 																	const QString &muscular_group = QString{});
-	Q_INVOKABLE void removeExercise(const uint index);
 
-	Q_INVOKABLE void setFilter(const QString &filter);
-	Q_INVOKABLE void search(const QString &search_term);
-	Q_INVOKABLE inline QString filter() const { return m_filterString; }
-
-	Q_INVOKABLE void clearSelectedEntries();
-	Q_INVOKABLE bool manageSelectedEntries(uint index, const uint max_selected = 1);
-	inline QString selectedEntriesValue(const uint index, const uint field) const
-	{
-		return data(QAbstractListModel::index(m_selectedEntries.at(index)), Qt::UserRole + field).toString();
-	}
-	inline uint selectedEntriesCount() const { return m_selectedEntries.count(); }
+	inline void setMuscularGroupFilter(const QString &filter) { m_mgf = filter; }
 
 	bool collectExportData();
 
@@ -119,33 +79,38 @@ public:
 	int importFromFormattedFile(const TPFilePath &filename);
 	int newExerciseFromFile(const TPFilePath &filename, const std::optional<bool> &file_formatted = std::nullopt);
 
-	inline int rowCount(const QModelIndex &parent) const override final { Q_UNUSED(parent); return count(); }
-	QVariant data(const QModelIndex &index, int role) const override final;
-	[[maybe_unused]] bool setData(const QModelIndex &index, const QVariant &value, int role) override final;
-	inline QHash<int, QByteArray> roleNames() const override final { return m_roleNames; }
+	inline const QString &exerciseData(const ExerciseListFields field, int index = -1) const
+	{
+		if (index == -1) {
+			if ((index = currentRow()) < 0)
+				return m_strEmpty;
+		} else if (index >= m_exercisesData.count()) {
+			return m_strEmpty;
+		}
+		return m_exercisesData.at(index).at(field);
+	}
+
+	//--------------- Base Class overrides -------------------
+	void setFieldsNames() override final;
+	inline const QString &dataValue(const uint real_row, const uint column) const override final
+	{
+		return exerciseData(static_cast<ExerciseListFields>(column), real_row);
+	}
+	QVariant data(const uint role, const uint row, const int column = -1) const override final;
+	//--------------- Base Class overrides -------------------
 
 signals:
-	void countChanged();
 	void labelsChanged();
-	void currentRowChanged();
-	void hasExercisesChanged();
 
 private:
 	QList<QStringList> m_exercisesData;
-	QList<uint> m_muscularFilteredIndices;
-	QList<uint> m_searchFilteredIndices;
 	QList<uint> m_exportRows;
-	QHash<int, QByteArray> m_roleNames;
-	QList<uint> m_selectedEntries;
 	DBModelInterfaceExercisesList *m_dbModelInterface{nullptr};
 	DBExercisesListTable *m_db{nullptr};
-	QString m_filterString, m_searchString;
-	uint m_exercisesListCount{0}, m_selectedEntryToReplace{0};
-	int m_currentRow{-1};
-	bool m_muscularFilterApplied{false}, m_searchFilterApplied{false};
+	QString m_strEmpty, m_mgf;
 
+	void addFilters();
 	void readExercisesList();
-	void resetSearchModel();
 
 	static DBExercisesListModel *_app_exercises_list;
 	friend DBExercisesListModel *appExercisesList();

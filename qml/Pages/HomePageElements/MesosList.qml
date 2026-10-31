@@ -64,16 +64,7 @@ Item {
 			required property bool mesoSplitsAvailable
 			required property bool haveCalendar
 
-			onClicked: _control.mesoFilteredModel.mesoModel().getMesocyclePage(delegate.mesoIdx, false);
-
-			Rectangle {
-				id: optionsRec
-				color: AppSettings.primaryDarkColor
-				radius: 6
-				layer.enabled: true
-				visible: false
-				anchors.fill: parent
-			}
+			onItemClicked: _control.mesoFilteredModel.mesoModel().getMesocyclePage(delegate.mesoIdx, false);
 
 			Rectangle {
 				id: removeBackground
@@ -88,7 +79,6 @@ Item {
 				id: backRec
 				anchors.fill: parent
 				radius: 8
-				layer.enabled: true
 				color: {
 					switch (_control.mesoFilteredModel.type) {
 						case MesocyclesModel.MT_MESO_FROM_COACH: return AppSettings.primaryColor;
@@ -98,21 +88,6 @@ Item {
 				}
 				border.color: delegate.index === _control.mesoFilteredModel.currentRow ? AppSettings.fontColor : "transparent"
 				visible: false
-			}
-
-			background: MultiEffect {
-				id: mesoEntryEffect
-				visible: true
-				source: backRec
-				shadowEnabled: true
-				shadowOpacity: 0.5
-				blurMax: 16
-				shadowBlur: 1
-				shadowHorizontalOffset: 5
-				shadowVerticalOffset: 5
-				shadowColor: "black"
-				shadowScale: 1
-				opacity: 0.8
 			}
 
 			itemContent: Item {
@@ -163,20 +138,14 @@ Item {
 				}
 			}
 
-			swipe.left: MultiEffect {
-				id: optionsEffect
+			swipe.left: Rectangle {
+				id: optionsRec
+				color: AppSettings.primaryDarkColor
+				radius: 8
 				anchors.fill: parent
-				source: optionsRec
-				shadowEnabled: true
-				shadowOpacity: 0.5
-				blurMax: 16
-				shadowBlur: 1
-				shadowHorizontalOffset: 5
-				shadowVerticalOffset: 5
-				shadowColor: "black"
-				shadowScale: 1
 				opacity: delegate.swipe.complete ? 0.8 : delegate.swipe.position
 				Behavior on opacity { NumberAnimation {} }
+				z:2
 
 				TPButton {
 					id: btnMesoInfo
@@ -186,7 +155,6 @@ Item {
 					rounded: false
 					width: parent.width / 2 - 10
 					height: parent.height / 2 - 10
-					z:1
 
 					anchors {
 						top: parent.top
@@ -207,7 +175,6 @@ Item {
 					enabled: delegate.haveCalendar
 					width: parent.width / 2 - 10
 					height: parent.height / 2 - 10
-					z: 1
 
 					anchors {
 						top: parent.top
@@ -228,7 +195,6 @@ Item {
 					textUnderIcon: true
 					width: parent.width / 2 - 10
 					height: parent.height / 2 - 10
-					z: 1
 
 					anchors {
 						top: btnMesoInfo.bottom
@@ -249,7 +215,6 @@ Item {
 					enabled: delegate.mesoExportable
 					width: parent.width / 2 - 10
 					height: parent.height / 2 - 10
-					z: 1
 
 					anchors {
 						top: btnMesoCalendar.bottom

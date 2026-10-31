@@ -136,7 +136,7 @@ TPBackRec {
 		id: btnFilter
 		text: qsTr("Filter")
 		rounded: false
-		checkable: true
+		checkable: _control.listModel.hasFilter
 		isChecked: _control.listModel.enableFilters
 		image: "filter.png"
 		imageHeight: AppSettings.itemSmallHeight

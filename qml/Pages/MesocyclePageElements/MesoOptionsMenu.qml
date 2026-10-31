@@ -27,7 +27,7 @@ TPPageMenu {
 		case MesoManager.OPTION_SAVE_AS: mesoManager.mesoFileOperations().doFileOperation(FileOperations.OT_Download); break;
 		case MesoManager.OPTION_SEND_TO: mesoManager.mesoFileOperations().doFileOperation(FileOperations.OT_Forward); break;
 		case MesoManager.OPTION_SHARE: mesoManager.mesoFileOperations().doFileOperation(FileOperations.OT_Share); break;
-		case MesoManager.OPTION_EXERCISES_PLANNE: mesoManager.getExercisesPlannerPage(); break;
+		case MesoManager.OPTION_EXERCISES_PLANNER: mesoManager.getExercisesPlannerPage(); break;
 		}
 	}
 

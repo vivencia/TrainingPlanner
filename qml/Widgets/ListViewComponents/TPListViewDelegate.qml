@@ -20,24 +20,52 @@ SwipeDelegate {
 	required property TPListView tpListView
 	required property Item itemContent
 	readonly property TPListModel listModel: tpListView.listModel
-	readonly property int preferredHeight: itemContent.height
+	property int preferredHeight: itemContent.height
+	readonly property bool currentItem: _control.listModel.currentRow === _control._index
 
 	signal setupLayout()
+	signal itemClicked(int index)
 
 //protected:
 	property int _index
 	property bool _itemVisible
+	property bool _set_up: false
 
-	onFocusChanged: {
-		if (focus)
-			listModel.currentRow = _index;
+	Behavior on height {
+		id: heightBehavior
+		enabled: false
+
+		SpringAnimation {
+			easing.type: Easing.InOutQuad
+			spring: 3
+			damping: 0.2
+			mass: 2
+		}
+	}
+
+	onCurrentItemChanged: {
+		if (_set_up) {
+			heightBehavior.enabled = true;
+			if (currentItem)
+				preferredHeight += 30;
+			else
+				preferredHeight -= 30;
+			heightBehavior.enabled = false;
+		}
 	}
 
 	onHeightChanged: {
-		if (bufferTimer.running)
-			return;
-		else
-			bufferTimer.start();
+		if (!_set_up) {
+			if (bufferTimer.running)
+				return;
+			else
+				bufferTimer.start();
+		}
+	}
+
+	onClicked: {
+		listModel.currentRow = _index;
+		itemClicked(_index);
 	}
 
 	Connections {
@@ -61,6 +89,7 @@ SwipeDelegate {
 			//Now that size reached its final value, layout the widgets inside listView.delegateItem. Only useful for complex
 			//items like TPRadioButtonOrCheckBox or multi-items items.
 			_control.setupLayout();
+			_control._set_up = true;
 		}
 	}
 
@@ -69,8 +98,8 @@ SwipeDelegate {
 	background: TPBackRec {
 		id:	backgroundColor
 		useGradient: true
-		showBorder: true
-		opacity: 0.9
+		showBorder: _control.currentItem
+		opacity: _control.currentItem ? 1.0 : 0.6
 	}
 
 	swipe.right: Rectangle {

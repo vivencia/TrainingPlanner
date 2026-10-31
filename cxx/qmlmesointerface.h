@@ -133,8 +133,13 @@ public:
 	[[nodiscard]] QString objective() const;
 	void setObjective(const QString &new_objective);
 
-	Q_INVOKABLE TPFileOps *instructionsFileViewer() const { return m_instructionsFileOps; }
-	Q_INVOKABLE TPFileOps *mesoFileOperations() const { return m_mesoFileOps; }
+	Q_INVOKABLE inline TPFileOps *instructionsFileViewer() const { return m_instructionsFileOps; }
+	Q_INVOKABLE inline TPFileOps *mesoFileOperations() const
+	{
+		if (!m_mesoFileOps)
+			const_cast<QMLMesoInterface*>(this)->createFileOps();
+		return m_mesoFileOps;
+	}
 
 	[[nodiscard]] Q_INVOKABLE QString muscularGroup(const QString &split) const;
 	Q_INVOKABLE void setMuscularGroup(const QString &split, const QString &new_value);
@@ -189,6 +194,7 @@ private:
 	QmlMesoCalendarInterface *m_calendarPage{nullptr};
 
 	void createFileOps();
+	void createInstructionsFileOps();
 	void createMesocyclePage();
 	void createOptionsMenu();
 };

@@ -450,9 +450,10 @@ TPFilePathPtr DBExercisesModel::suggestedName(const bool formatted_file) const
 	QString receiverid;
 	const DBMesocyclesModel::MesoType mt{appUserModel()->actualMesoModel()->mesoType(m_mesoIdx)};
 	switch (mt) {
-		case DBMesocyclesModel::MT_MESO_FOR_CLIENT:	receiverid = std::move(appUserModel()->actualMesoModel()->client(m_mesoIdx)); break;
-		case DBMesocyclesModel::MT_MESO_FROM_COACH:	receiverid = std::move(appUserModel()->actualMesoModel()->coach(m_mesoIdx)); break;
-		case DBMesocyclesModel::MT_MESO_FOR_SELF:	receiverid = appUserModel()->userId(0); break;
+	case DBMesocyclesModel::MT_MESO_FOR_CLIENT:	receiverid = std::move(appUserModel()->actualMesoModel()->client(m_mesoIdx)); break;
+	case DBMesocyclesModel::MT_MESO_FROM_COACH:	receiverid = std::move(appUserModel()->actualMesoModel()->coach(m_mesoIdx)); break;
+	case DBMesocyclesModel::MT_MESO_FOR_SELF:	receiverid = appUserModel()->userId(0); break;
+	default: Q_UNREACHABLE();
 	}
 	return TPFilePath::newTPFilePath(m_mesoModel->name(m_mesoIdx) % tr(" - Workout ") % splitLetter() %
 									TPUtils::TP_FILE_EXTENSION, appUserModel()->userId(0), receiverid, {workouts_subdir});
@@ -806,9 +807,9 @@ void DBExercisesModel::newExerciseChosen()
 
 void DBExercisesModel::newExerciseFromExercisesList()
 {
-	setExerciseName(m_workingExercise, workingSubExercise(m_workingExercise), std::move(
-						appExercisesList()->selectedEntriesValue(0, EXERCISES_LIST_FIELD_MAINNAME) % " - "_L1 %
-						appExercisesList()->selectedEntriesValue(0, EXERCISES_LIST_FIELD_SUBNAME)));
+	setExerciseName(m_workingExercise, workingSubExercise(m_workingExercise),
+						appExercisesList()->exerciseData(DBExercisesListModel::MAINNAME) % " - "_L1 %
+						appExercisesList()->exerciseData(DBExercisesListModel::SUBNAME));
 }
 
 void DBExercisesModel::saveExercises(const int exercise_number, const int exercise_idx, const int set_number, const int field)

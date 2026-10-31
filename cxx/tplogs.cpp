@@ -74,12 +74,12 @@ void TPLogs::setFieldsNames()
 QVariant TPLogs::data(const uint role, const uint row, const int column) const
 {
 	switch (role) {
-		case logOriginRole: return origin(row);
-		case logTitleRole: return title(row);
-		case logMessageRole: return message(row);
-		case logTimeRole: return d_time(row);
-		case logTooltipRole: return condensedLog_fancy(row);
-		default: break;
+	case logOriginRole: return origin(row);
+	case logTitleRole: return title(row);
+	case logMessageRole: return message(row);
+	case logTimeRole: return d_time(row);
+	case logTooltipRole: return condensedLog_fancy(row);
+	default: break;
 	}
 	return QVariant{};
 }

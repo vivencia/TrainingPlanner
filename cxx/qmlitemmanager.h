@@ -70,7 +70,7 @@ public:
 	Q_INVOKABLE void getCoachesPage();
 	Q_INVOKABLE void getClientsPage();
 	Q_INVOKABLE void getExercisesPage(QmlWorkoutInterface *connectPage = nullptr);
-	Q_INVOKABLE void showSimpleExercisesList(QQuickItem *parentPage, const QString &filter);
+	Q_INVOKABLE void showSimpleExercisesList(QQuickItem *parentPage, const QString &muscular_group = QString{});
 	Q_INVOKABLE void getWeatherPage();
 	Q_INVOKABLE void showLogs();
 	Q_INVOKABLE void getStatisticsPage();

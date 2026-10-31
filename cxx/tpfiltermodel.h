@@ -12,7 +12,7 @@ Q_OBJECT
 QML_ELEMENT
 QML_VALUE_TYPE(TPFilterModel)
 
-Q_PROPERTY(uint count READ count NOTIFY countChanged)
+Q_PROPERTY(uint count READ count NOTIFY countChanged FINAL)
 
 public:
 
@@ -59,6 +59,7 @@ public:
 			if (!m_filterElements.at(filter_index).selected_values.at(value_index)) {
 				m_filterElements[filter_index].selected_values[value_index] = true;
 				m_filters.append(m_filterElements.at(filter_index).values.at(value_index));
+				emit hasFilterChanged();
 			}
 		}
 	}
@@ -68,6 +69,7 @@ public:
 			if (m_filterElements.at(filter_index).selected_values.at(value_index)) {
 				m_filterElements[filter_index].selected_values[value_index] = false;
 				m_filters.removeOne(m_filterElements.at(filter_index).values.at(value_index));
+				emit hasFilterChanged();
 			}
 		}
 	}
@@ -87,6 +89,7 @@ public:
 
 signals:
 	void countChanged();
+	void hasFilterChanged();
 	void filtersChanged(const bool); //Signature matching
 
 private:

@@ -29,6 +29,7 @@ Q_PROPERTY(bool anySelected READ anySelected NOTIFY selectedChanged FINAL)
 Q_PROPERTY(bool allSelected READ allSelected NOTIFY selectedChanged FINAL)
 Q_PROPERTY(bool noneSelected READ noneSelected NOTIFY selectedChanged FINAL)
 Q_PROPERTY(bool askBeforeRemove READ askBeforeRemove WRITE setAskBeforeRemove NOTIFY askBeforeRemoveChanged FINAL)
+Q_PROPERTY(bool hasFilter READ hasFilter NOTIFY hasFilterChanged FINAL)
 Q_PROPERTY(QString identifier READ identifier WRITE setIdentifier NOTIFY identifierChanged FINAL)
 Q_PROPERTY(QStringList fieldsNames READ fieldsNames NOTIFY fieldsNamesChanged FINAL)
 Q_PROPERTY(TPFilterModel filters READ filters NOTIFY filtersChanged FINAL)
@@ -82,21 +83,40 @@ public:
 			m_filterField = filter_field;
 			emit filterFieldChanged();
 			if (m_enableFilters)
-				applyFilters();
+				applySecondaryFilters();
 		}
 	}
 	inline TPFilterModel *filters() const { return m_filters; }
+	inline bool hasFilter() const { return m_filters && !m_filters->filters().isEmpty(); }
 	inline bool enableFilters() const { return m_enableFilters; }
 	inline void setEnableFilters(const bool enable)
 	{
 		if (m_filters && enable != m_enableFilters) {
+			if (enable && !hasFilter())
+				return;
 			m_enableFilters = enable;
 			emit enableFiltersChanged();
-			applyFilters();
+			applySecondaryFilters();
 		}
 	}
-	inline bool persistentFilterEnabled() const { return m_hasPersistentFilters; }
-	inline void enablePersistentFilter(const bool enable) { m_hasPersistentFilters = enable; }
+
+	/**
+	 * @brief setPersistentFilterCompareFunction. Note: setFiltersManager() must be called prior to this
+	 * @param positive: true means a match for value will make the item visible; false means a non-match will make the item visible
+	 * @param filter_index: the column from which to extract the comparison with value(dataValue() will be used)
+	 * @param value: the filter itself
+	 * @param func: when using it, value and filter_index will be ignored and the logic to do the filtering will be carried by func
+	 */
+	inline void setPersistentFilterCompareFunction(const bool positive, const uint filter_index, const QString &value,
+																			const std::function<bool(bool,int)> &func)
+	{
+		m_compareFunc = func;
+		if (positive)
+			m_filters->setPositiveFilter(filter_index, value);
+		else
+			m_filters->setNegativeFilter(filter_index, value);
+	}
+	inline void removePersistentFilterCompareFunction() { m_compareFunc = nullptr; }
 
 	inline QString identifier() const { return m_identifier; }
 	inline void setIdentifier(const QString &identifier) { m_identifier = identifier; emit identifierChanged(); }
@@ -167,18 +187,18 @@ public:
 	QList<int> selectedInfo(const bool return_real_indices = true) const;
 
 	/**
-	 * Works on visible/virtual rows/indices. Second round of searching. Uses QString::compare()
+	 * Works on visible/virtual rows/indices. Third level of searching. Uses QString::compare()
 	 * @field: -1 gives the chance for a derived class to set m_sortField before calling this and the sort will
 	 * be done on that field. Otherwise, the default sort field is 0.
-	 * @see applyFilter() and search()
+	 * @see applySecondaryFilters() and search()
 	 **/
 	void sort(const bool do_layout_signals = true);
 
 	/**
 	 * If field < 0, search()/find() will look in all fields of the visible/virtual rows/indices.
 	 * Modifies the visibilty of already visible items to false if there is no match.
-	 * This is the third round of searching.
-	 * @see applyFilter() and sort()
+	 * This is the fourth level of searching.
+	 * @see applySecondaryFilters() and sort()
 	 **/
 	Q_INVOKABLE void search(const QString &search_term, int field = -1, const bool do_layout_signals = true);
 
@@ -216,7 +236,7 @@ public:
 	 * @brief syncMetadata
 	 * Call after m_modelData is filled with data from batch operations(e.g. after a Database read).
 	 */
-	void syncMetadata(const uint modeldata_count, const bool do_qml_signals = true);
+	void syncMetadata(const uint modeldata_count);
 
 	/**
 	 * @brief insertMetaData/removeMetaData
@@ -243,17 +263,6 @@ public:
 		return QString{};
 	}
 
-	inline void setPersistentFilterCompareFunction(const bool positive, const uint filter_index, const QString &value,
-																			const std::function<bool(bool,int)> &func)
-	{
-		m_compareFunc = func;
-		if (positive)
-			m_filters->setPositiveFilter(filter_index, value);
-		else
-			m_filters->setNegativeFilter(filter_index, value);
-	}
-	inline void removePersistentFilterCompareFunction() { m_compareFunc = nullptr; }
-
 	inline int rowCount(const QModelIndex & = QModelIndex{}) const override final { return count(); }
 	inline int columnCount(const QModelIndex & = QModelIndex{}) const override final { return colCount(); }
 
@@ -264,12 +273,12 @@ public:
 
 public slots:
 	/**
-	 * Functions as a first round of searching, but works on real rows/indices.
+	 * Functions as a second level of searching, but works on real rows/indices.
 	 * Limits the visible items to a certain condition, e.g. split A(filter = "A",
 	 * field = MESO_FIELD_SPLITA), or completed exercises (filter = "1", field =  EXERCISES_FIELD_COMPLETED)
 	 * @see sort() and search()
 	 */
-	void applyFilters(const bool do_layout_signals = true);
+	void applySecondaryFilters(const bool do_layout_signals = true);
 
 signals:
 	void selectEntireRowChanged();
@@ -277,6 +286,7 @@ signals:
 	void visibleCountChanged();
 	void parentPageChanged();
 	void askBeforeRemoveChanged();
+	void hasFilterChanged();
 	void identifierChanged();
 	void filterFieldChanged();
 	void enableFiltersChanged();
@@ -344,15 +354,22 @@ private:
 	void remove(const bool from_qml, const bool bypass_confirmation = false);
 	uint nextVirtualIndex() const;
 	void resetVirtualIndices();
+	inline bool persistentFilterEnabled() const { return m_hasPersistentFilters; }
+	inline void enablePersistentFilter(const bool enable) { m_hasPersistentFilters = enable; }
 	void insertSort(const uint row);
 	const bool visible(const int row, const int column = -1) const;
 	void setVisible(const uint row, bool visible, const int column = -1, const bool emit_signals = true);
 	bool selected(const int row, const uint visible_column = 0) const;
 	void setSelected(const int row, const bool selected, const uint visible_column = 0);
-	bool itemShouldBeVisible(const uint real_row) const;
+	void applyPersistentFilters(const bool do_layout_signals);
+	bool itemShouldBeVisible_1(const uint real_row) const;
+	bool itemShouldBeVisible_2(const uint real_row) const;
 	bool itemShouldRemainVisible(const uint real_row, const QStringList &search_terms) const;
 	void restoreState(const uint real_row, const int index);
 	void saveState(const uint real_row, const bool add_new_state);
 	void syncNewItemStates(const uint real_row, const bool laststate_visible);
 	void alterStates(const uint new_item_row, uint state_index);
+	void doConnectionsWork(const bool do_connect);
+
+	friend class TPFilterModel;
 };
